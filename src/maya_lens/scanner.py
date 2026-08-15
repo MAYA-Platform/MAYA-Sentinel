@@ -114,6 +114,108 @@ TELEMETRY_PATTERNS = [
     ("fingerprinting", re.compile(r"(fingerprint|canvas\.toDataURL|navigator\.plugins|navigator\.userAgent)", re.IGNORECASE)),
 ]
 
+# --- Phishing / brand-impersonation signal surface (static only) ---
+# Built from the 2026-08-15 HERMES-TOKEN / hermes-agent.icu phishing campaign
+# investigation and standard phishing-abuse knowledge. All checks are pure
+# pattern matching on repo text; no network calls, no DNS, no live reputation.
+# False-positive control: brand impersonation requires a known brand token on
+# a non-canonical host, and documentation references stay advisory unless the
+# signal appears in code/HTML with executable or credential-harvest intent.
+
+SHORTLINK_DOMAINS = {
+    "bit.ly", "tinyurl.com", "t.co", "goo.gl", "goo.su", "t.ly", "is.gd",
+    "cutt.ly", "rebrand.ly", "s.id", "shorturl.at", "ow.ly", "buff.ly",
+    "rb.gy", "tiny.cc", "soo.gd", "tny.im", "shorte.st", "adf.ly", "bc.vc",
+    "qr.ae", "v.gd", "tiny.one", "lnkd.in", "surl.li", "urlzs.com", "cutt.us",
+}
+
+# Cheap / abuse-prone TLDs that phishing and scam infrastructure favor.
+SUSPICIOUS_TLDS = {
+    "icu", "top", "gq", "ml", "xyz", "cf", "tk", "ga", "info", "buzz",
+    "club", "online", "site", "live", "rest", "monster", "download",
+    "country", "stream", "gdn", "vip", "work", "party", "racing", "review",
+    "kim", "loan", "win", "bid", "click", "link", "date", "men", "science",
+    "zip", "mov", "pharmacy", "accountant", "loan", "credit", "casino",
+    "poker", "bet", "cricket", "xyz", "cyou", "shop", "store", "sale",
+    "gdn", "quest", "surf", "uno", "space", "website", "fun", "digital",
+}
+
+# Known brands scammers impersonate, mapped to their canonical host suffixes.
+# host == canonical -> benign. host contains brand but is NOT canonical -> flag.
+BRAND_CANONICAL_HOSTS = {
+    "hermes": {"hermes-agent.nousresearch.com", "nousresearch.com"},
+    "nousresearch": {"nousresearch.com"},
+    "openai": {"openai.com"},
+    "anthropic": {"anthropic.com", "claude.ai"},
+    "claude": {"claude.ai", "anthropic.com"},
+    "google": {"google.com", "gmail.com", "googleapis.com", "googlesyndication.com"},
+    "gmail": {"gmail.com", "google.com"},
+    "microsoft": {"microsoft.com", "live.com", "outlook.com", "office.com", "msn.com"},
+    "outlook": {"outlook.com", "microsoft.com", "office.com"},
+    "apple": {"apple.com", "icloud.com"},
+    "icloud": {"icloud.com", "apple.com"},
+    "discord": {"discord.com", "discord.gg", "discordapp.com"},
+    "telegram": {"telegram.org", "t.me"},
+    "whatsapp": {"whatsapp.com"},
+    "facebook": {"facebook.com", "fb.com"},
+    "instagram": {"instagram.com"},
+    "paypal": {"paypal.com", "paypal.me"},
+    "amazon": {"amazon.com", "aws.amazon.com", "amazonaws.com"},
+    "aws": {"amazonaws.com", "aws.amazon.com"},
+    "netflix": {"netflix.com"},
+    "coinbase": {"coinbase.com"},
+    "metamask": {"metamask.io"},
+    "binance": {"binance.com"},
+    "github": {"github.com", "github.io"},
+    "gitlab": {"gitlab.com"},
+    "slack": {"slack.com"},
+    "zoom": {"zoom.us", "zoom.com"},
+    "dropbox": {"dropbox.com"},
+    "linkedin": {"linkedin.com"},
+    "steam": {"steampowered.com", "steamcommunity.com"},
+    "riotgames": {"riotgames.com"},
+    "epicgames": {"epicgames.com"},
+    "roblox": {"roblox.com"},
+    "chase": {"chase.com"},
+    "wellsfargo": {"wellsfargo.com"},
+    "bankofamerica": {"bankofamerica.com"},
+    "venmo": {"venmo.com"},
+    "cashapp": {"cash.app", "cashapp.com"},
+    "zelle": {"zellepay.com"},
+    "usps": {"usps.com"},
+    "fedex": {"fedex.com"},
+    "ups": {"ups.com"},
+}
+
+# Ad-fraud / scam / click-fraud tracking + distribution stacks seen on phishing
+# and malware-bait domains (e.g. hermes-agent.icu: Yandex Metrika + mail.ru
+# counter + digitalcaramel). Distinct from legit analytics (TELEMETRY_PATTERNS).
+SCAM_TRACKING_PATTERNS = [
+    ("scam ad/redirect stack", re.compile(r"(digitalcaramel|clickadu|propellerads|popcash|popads|adsterra|exoclick|juicyads|clickaine)", re.IGNORECASE)),
+    ("yandex metrika on phishing surface", re.compile(r"mc\.yandex\.ru|metrika/tag\.js|yandex\.ru/metrika", re.IGNORECASE)),
+    ("mail.ru counter", re.compile(r"top-fwz1\.mail\.ru|mail\.ru/js/code\.js", re.IGNORECASE)),
+    ("aggressive ad network", re.compile(r"pagead2\.googlesyndication\.com.*adsbygoogle|adsbygoogle\.js", re.IGNORECASE)),
+    ("bot-detection / anti-scrape stack", re.compile(r"openfpcdn\.io/botd|fingerprintjs", re.IGNORECASE)),
+]
+
+# Credential harvesting / wallet drainer / fake-verification language.
+PHISHING_TEXT_PATTERNS = [
+    ("credential harvest language", re.compile(r"(verify your (account|identity|login)|sign in to verify|confirm your password to continue|your account (has been )?(suspended|locked|restricted).{0,60}click|update your payment details|unusual (login|activity).{0,60}verify)", re.IGNORECASE)),
+    ("wallet drainer language", re.compile(r"(connect your wallet.{0,80}(claim|mint|airdrop)|approve (this )?(contract|transaction).{0,80}claim|seed phrase.{0,80}(verify|recover|confirm)|recovery phrase.{0,80}(never|enter))", re.IGNORECASE)),
+    ("fake airdrop/presale", re.compile(r"(free (airdrop|presale|token).{0,80}(claim|join)|airdrop.{0,60}(claim|distribution).{0,60}wallet)", re.IGNORECASE)),
+    ("token scam contract", re.compile(r"(approve.{0,40}spend.{0,40}unlimited|setAllowance.{0,60}max|transferFrom.{0,80}wallet)", re.IGNORECASE)),
+    ("fake support/survey bait", re.compile(r"(claim your (reward|prize|bonus).{0,80}(login|connect|enter)|you have been selected.{0,80}(claim|collect|redeem))", re.IGNORECASE)),
+]
+
+# Data exfiltration / callback endpoints commonly used by malware and scam bait.
+EXFIL_ENDPOINT_PATTERNS = [
+    ("discord webhook exfil", re.compile(r"discord(app)?\.com/api/webhooks/[A-Za-z0-9_\-]+/[A-Za-z0-9_\-]+", re.IGNORECASE)),
+    ("telegram bot token / channel", re.compile(r"t\.me/[A-Za-z0-9_]{3,}|api\.telegram\.org/bot\d{6,}:[A-Za-z0-9_\-]{20,}", re.IGNORECASE)),
+    ("paste/transfer exfil", re.compile(r"(pastebin\.com|transfer\.sh|file\.io|0x0\.st|tmpfiles\.org|anonfiles\.com|katfile)", re.IGNORECASE)),
+    ("webhook/callback collector", re.compile(r"(webhook\.site|requestbin\.com|pipedream\.net|beeceptor\.com|hookbin\.com|mocky\.io)", re.IGNORECASE)),
+    ("crypto payment demand", re.compile(r"send (btc|eth|usdt).{0,60}(to|this).{0,20}(address|wallet)|pay.{0,30}(ransom|fee).{0,40}(btc|eth|bitcoin|ethereum)", re.IGNORECASE)),
+]
+
 AI_COMPONENT_RULES = [
     ("agent_instruction", re.compile(r"(^|/)(AGENTS\.md|CLAUDE\.md|\.cursorrules|\.cursor/rules|\.agents/|\.claude/skills/|skills?/SKILL\.md)", re.IGNORECASE)),
     ("mcp_server", re.compile(r"(^|/)(mcp\.json|claude_desktop_config\.json|.*mcp.*\.(json|yaml|yml|toml|py|js|ts))$", re.IGNORECASE)),
@@ -133,6 +235,7 @@ REMEDIATION_BY_CATEGORY = {
     "dependency": "Review dependency manifests and pin/lock behavior before install.",
     "obfuscation": "Inspect encoded/large generated content manually before trusting the repo.",
     "intrusiveness": "Review telemetry/fingerprinting behavior before using in a user-facing or local runtime surface.",
+    "phishing": "Treat shortlink, lookalike-domain, credential-harvest, wallet-drainer, or exfil-endpoint signals as high-priority review. Verify the destination of every shortened/lookalike URL before trusting or executing anything from the repo. Do not run installers or connect wallets from a repo carrying these signals.",
 }
 
 ADVISORY_URGENCY_BY_DECISION = {
@@ -713,6 +816,87 @@ def hardcoded_url_severity(line: str, rel_path: str) -> str | None:
     return "medium"
 
 
+def _host_tld(host: str) -> str | None:
+    """Return the registrable TLD-ish tail of a host (last label or last two for ccTLD combos)."""
+    labels = [label for label in host.rstrip(".").split(".") if label]
+    if len(labels) >= 2:
+        return labels[-1].lower()
+    return labels[-1].lower() if labels else None
+
+
+def _host_suffix_matches(host: str, canonical_set: set[str]) -> bool:
+    """True if host equals or ends with any canonical host suffix (dot-bounded)."""
+    host = host.lower().rstrip(".")
+    for canon in canonical_set:
+        canon = canon.lower().rstrip(".")
+        if host == canon:
+            return True
+        if host.endswith("." + canon):
+            return True
+    return False
+
+
+def classify_phishing_signals(line: str, rel_path: str) -> list[tuple[str, str]]:
+    """Return [(signal, severity), ...] for phishing/impersonation indicators.
+
+    Static-only. Shortlink/lookalike signals are advisory in docs but escalate
+    in code/HTML. Brand impersonation requires a known brand token on a
+    non-canonical host. Exfil endpoints and wallet-drainer language are
+    high-severity wherever they appear (outside obvious security-reference docs).
+    """
+    lower = line.lower()
+    suffix = Path(rel_path).suffix.lower()
+    is_docs = suffix in {".md", ".rst", ".txt"} or "readme" in rel_path.lower() or "/docs/" in f"/{rel_path.lower()}" or "/examples/" in f"/{rel_path.lower()}"
+    is_reference = is_docs or "test" in rel_path.lower() or "fixture" in rel_path.lower() or ".example" in rel_path.lower()
+
+    signals: list[tuple[str, str]] = []
+
+    # 1. Shortlink domains hiding destinations.
+    for url in URL_RE.findall(lower):
+        try:
+            parsed = urlparse(url)
+        except ValueError:
+            continue
+        host = (parsed.netloc or "").lower().split("@")[-1].split(":")[0]
+        if not host:
+            continue
+        if any(host == dom or host.endswith("." + dom) for dom in SHORTLINK_DOMAINS):
+            signals.append(("shortlink hides destination", "low" if is_docs else "high"))
+            continue
+        tld = _host_tld(host)
+        if tld in SUSPICIOUS_TLDS:
+            signals.append(("suspicious TLD (scam-favored)", "low" if is_docs else "medium"))
+        # 2. Brand impersonation: known brand token on a non-canonical host.
+        for brand, canonical in BRAND_CANONICAL_HOSTS.items():
+            if brand in host and not _host_suffix_matches(host, canonical):
+                signals.append(("brand-impersonation lookalike host", "medium" if is_docs else "high"))
+                break
+
+    # 3. Scam tracking / ad-fraud stacks (HTML/JS only by nature, but scan any text).
+    for signal, pattern in SCAM_TRACKING_PATTERNS:
+        if pattern.search(lower):
+            signals.append((signal, "medium"))
+
+    # 4. Credential-harvest / wallet-drainer / fake-verification language.
+    for signal, pattern in PHISHING_TEXT_PATTERNS:
+        if pattern.search(lower):
+            signals.append((signal, "low" if is_reference else "high"))
+
+    # 5. Exfiltration / callback endpoints.
+    for signal, pattern in EXFIL_ENDPOINT_PATTERNS:
+        if pattern.search(lower):
+            signals.append((signal, "low" if is_reference else "high"))
+
+    # De-dup, keep highest severity per signal label.
+    rank = {"info": 0, "low": 1, "medium": 2, "high": 3}
+    best: dict[str, str] = {}
+    for signal, severity in signals:
+        prev = best.get(signal)
+        if prev is None or rank[severity] > rank[prev]:
+            best[signal] = severity
+    return list(best.items())
+
+
 def read_bounded_text(path: Path, rel: str, findings: list[dict[str, Any]], *, label: str = "manifest") -> str | None:
     try:
         size = path.stat().st_size
@@ -1265,6 +1449,8 @@ def scan_files(root: Path, inventory: dict[str, Any], deps: dict[str, Any]) -> l
             for signal, pattern in TELEMETRY_PATTERNS:
                 if pattern.search(line):
                     add_finding(findings, category="intrusiveness", severity="medium", path=rel, line=idx, signal=signal, snippet=line)
+            for signal, severity in classify_phishing_signals(line, rel):
+                add_finding(findings, category="phishing", severity=severity, path=rel, line=idx, signal=signal, snippet=line)
     return findings
 
 
@@ -1351,6 +1537,8 @@ def is_true_danger_finding(finding: dict[str, Any]) -> bool:
         return ("dangerous deletion" in signal or "persistence command" in signal) and not is_reference_path(path) and not is_ci_or_workflow_path(path)
     if category == "process":
         return ("reverse shell" in signal or "pipe-to-shell" in signal) and not is_reference_path(path) and not is_ci_or_workflow_path(path)
+    if category == "phishing":
+        return severity in {"critical", "high"} and not is_reference_path(path) and not is_ci_or_workflow_path(path)
     return False
 
 
@@ -1491,6 +1679,8 @@ def build_advisory_triage(
         focus.append("dependency/advisory surface")
     if any(f.get("category") == "credential" for f in findings):
         focus.append("credential-shaped signals")
+    if any(f.get("category") == "phishing" for f in findings):
+        focus.append("phishing / impersonation signals")
     if not focus:
         focus.append("static repo review")
 
@@ -1934,6 +2124,7 @@ def build_security_routing(
     live_network = live_counts.get("network", 0)
     live_filesystem = live_counts.get("filesystem", 0)
     live_obfuscation = live_counts.get("obfuscation", 0)
+    live_phishing = live_counts.get("phishing", 0)
     install_hooks_present = bool(deps.get("install_hooks"))
 
     large_archive = axes.get("Storage Footprint", {}).get("value", 0) >= 60
@@ -1947,6 +2138,21 @@ def build_security_routing(
             "This belongs in a human review queue before MAYA touches the repo beyond static inspection.",
         ]
         human_gate_required = True
+    elif live_phishing >= 2 and (live_process or live_network or live_actionable_credentials):
+        decision = "block_review_before_any_run"
+        recommended_lane = "Hold execution. Multiple phishing/impersonation signals co-occur with execution or credential surface; treat the repo as likely malicious bait until manually cleared."
+        why = [
+            "Multiple shortlink/lookalike/harvest/exfil signals appear alongside process, network, or credential surface. This is the signature of a phishing repo, not a security reference.",
+            "Keep static-only, expand every redacted URL, and require a human safety verdict before any execution or install decision.",
+        ]
+        human_gate_required = True
+    elif live_phishing >= 1:
+        decision = "advisory_enrichment_review"
+        recommended_lane = "Keep the repo static and enrich phishing findings with destination checks and credential-harvest context before any trust decision."
+        why = [
+            "The repo contains phishing/impersonation signals (shortlink, lookalike host, harvest language, or exfil endpoint). Verify every destination before promotion.",
+            "Documentation references stay advisory; code/HTML signals carry the weight.",
+        ]
     elif live_artifact_binaries or (artifact_family and artifact_pressure):
         decision = "deep_artifact_escalation"
         recommended_lane = "Keep it static-only and escalate to deeper artifact/SBOM review before any execution or install decision."
@@ -1977,6 +2183,7 @@ def build_security_routing(
             "live_executable_binaries": live_executable_binaries,
             "live_artifact_binaries": live_artifact_binaries,
             "offensive_signal_hits": offensive_signal_hits,
+            "live_phishing": live_phishing,
             "curated_quarantine": curated_quarantine,
             "install_hooks_present": install_hooks_present,
         },
@@ -2254,7 +2461,7 @@ def score_axes(
     governance_surface = governance_surface or empty_governance_surface()
     governance_counts = governance_surface.get("counts", {})
 
-    true_danger_categories = {"credential", "binary", "install_hook", "filesystem", "process", "archive_safety"}
+    true_danger_categories = {"credential", "binary", "install_hook", "filesystem", "process", "archive_safety", "phishing"}
     advisory_categories = {"network", "dependency", "intrusiveness", "obfuscation"}
     true_danger = actionable_findings(findings, true_danger_categories)
     reference_danger = reference_findings(findings, true_danger_categories)
@@ -2267,6 +2474,9 @@ def score_axes(
     binary = clamp(severity_points(actionable_findings(findings, {"binary"})) + min(20, severity_points(findings, {"obfuscation"}) * 0.35))
     network = clamp(severity_points(findings, {"network"}))
     intrusiveness = clamp(severity_points(findings, {"intrusiveness"}))
+    phishing_live = actionable_findings(findings, {"phishing"})
+    phishing_reference = reference_findings(findings, {"phishing"})
+    phishing = clamp(severity_points(phishing_live) + min(15, severity_points(phishing_reference) * 0.25))
     filesystem = clamp(severity_points(actionable_findings(findings, {"filesystem", "process", "install_hook"})))
 
     dependency_count = deps["direct_count"]
@@ -2299,6 +2509,7 @@ def score_axes(
     binary_color, binary_label = axis_from_pressure(binary, has_review_signal=any(f.get("category") in {"binary", "obfuscation"} for f in findings), red_at=50)
     network_color, network_label = ("blue", PUBLIC_REVIEW) if network else ("green", PUBLIC_NO_SIGNAL)
     intrusive_color, intrusive_label = ("blue", PUBLIC_REVIEW) if intrusiveness else ("green", PUBLIC_NO_SIGNAL)
+    phishing_color, phishing_label = axis_from_pressure(phishing, has_review_signal=bool(phishing_reference), red_at=50)
     filesystem_color, filesystem_label = axis_from_pressure(filesystem, has_review_signal=any(f.get("category") in {"filesystem", "process", "install_hook"} for f in findings), red_at=50)
     dependency_color = "red" if install_hook_count else "blue" if dependency_count or (deps["manifest_files"] and not has_lockfile) else "green"
     dependency_label = PUBLIC_RISK if install_hook_count else PUBLIC_REVIEW if dependency_color == "blue" else PUBLIC_NO_SIGNAL
@@ -2332,6 +2543,16 @@ def score_axes(
             review_options=["Keep static-only", "Review install scripts", "Sandbox before any run"],
         ),
         "Intrusiveness": make_axis(intrusiveness, "HIGH_BAD", "medium", "Telemetry, fingerprinting, or behavioral tracking patterns surfaced by text scan. Red requires real collection or tracking behavior, not documentation mentions.", color=intrusive_color, status_label=intrusive_label),
+        "Phishing Surface": make_axis(
+            phishing,
+            "HIGH_BAD",
+            "medium",
+            "Shortlinks, lookalike domains, brand-impersonation hosts, credential-harvest language, wallet-drainer wording, or exfil endpoints surfaced by text scan. Red requires a live signal in code/HTML, not a documentation reference.",
+            color=phishing_color,
+            status_label=phishing_label,
+            reward_note="MAYA flags impersonation and harvesting signals so you can stay protected while using AI freely. Verify any shortened or lookalike link before trusting the repo.",
+            review_options=["Expand redacted URLs", "Confirm destination of each shortlink", "Check wallet-drainer / harvest wording", "Treat exfil endpoints as review-required"],
+        ),
         "Dependency Risk": make_axis(
             dep_risk,
             "HIGH_BAD",

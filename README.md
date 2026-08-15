@@ -22,6 +22,7 @@ Upload a ZIP and watch the scan run, then read the decision brief.
 - **Install hooks and dependency manifests**, what runs when you install
 - **Credential-shaped values**, with redaction, not exposure
 - **Process, filesystem, persistence, binary, and network string surfaces**, what the code reaches for
+- **Phishing and brand-impersonation signals**, shortlink funnels, lookalike domains, scam ad/tracking stacks, credential-harvest and wallet-drainer wording, and exfiltration endpoints (built from a real 2026 campaign that mass-mentioned GitHub users and redirected them to a fake `hermes-agent.icu`)
 - **Self-declared provenance and reuse signals**, is this actually what it claims to be?
 - **AI/component inventory and agent/MCP workflow surfaces**, repo code that drives agents
 
