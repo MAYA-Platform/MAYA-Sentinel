@@ -217,10 +217,10 @@ class MayaLensScannerTests(unittest.TestCase):
         )
         with self._workspace_tmp() as work:
             result = scan_zip(zip_path, work_root=Path(work))
-        self.assertEqual(result["version"], "0.2.0")
+        self.assertEqual(result["version"], "1.0.0")
         self.assertIn(result["status"], {"No signal detected by this scan", "Review"})
 
-    def test_repo_brief_v02_builds_ai_bom_receipt_groups_and_remediation(self):
+    def test_sentinel_v10_builds_ai_bom_receipt_groups_and_remediation(self):
         zip_path = self._zip_with(
             {
                 "repo/AGENTS.md": "# Agent rules\nDo not run tools without permission.\n",
@@ -240,7 +240,7 @@ class MayaLensScannerTests(unittest.TestCase):
         with self._workspace_tmp() as work:
             result = scan_zip(zip_path, work_root=Path(work))
 
-        self.assertEqual(result["version"], "0.2.0")
+        self.assertEqual(result["version"], "1.0.0")
         self.assertEqual(result["ai_bom"]["version"], "maya_ai_component_bom_v0_2")
         component_types = result["ai_bom"]["component_type_counts"]
         self.assertGreaterEqual(component_types.get("agent_instruction", 0), 1)
@@ -293,9 +293,32 @@ class MayaLensScannerTests(unittest.TestCase):
 
     def test_public_homepage_copy_is_product_focused(self):
         index = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
-        self.assertIn("MAYA Repo Brief v0.2", index)
+        self.assertIn("MAYA Sentinel v1.0", index)
         self.assertIn("no cloud upload", index)
         self.assertIn("Reader-friendly", index)
+
+    def test_mode_picker_ships_all_six_scan_focuses(self):
+        index = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+        app_js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        for mode, label in [
+            ("safety", "Safety Scan"),
+            ("phishing", "Phishing / Impersonation"),
+            ("supply-chain", "Dependency &amp; Supply Chain"),
+            ("ai-surface", "AI / Agent Surface"),
+            ("exfil", "Exfil &amp; Telemetry"),
+            ("archive", "Archive Safety"),
+        ]:
+            self.assertIn(f'data-mode="{mode}"', index)
+            self.assertIn(label, index)
+        self.assertIn("MODE_DEFINITIONS", app_js)
+        self.assertIn("setActiveMode", app_js)
+        self.assertIn("findingsForMode", app_js)
+
+    def test_cli_supports_mode_flag(self):
+        server_source = (ROOT / "maya_lens_server.py").read_text(encoding="utf-8")
+        self.assertIn('"--mode"', server_source)
+        self.assertIn('choices=["safety", "phishing", "supply-chain", "ai-surface", "exfil", "archive"]', server_source)
+        self.assertIn("apply_mode_projection", server_source)
 
     def test_browse_zip_uses_visible_semantic_button_with_hidden_input_out_of_tab_order(self):
         index = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
@@ -508,7 +531,7 @@ packages:
         self.assertNotIn("pattern_sources", boundary)
 
         public_receipt = result["public_receipt"]
-        self.assertEqual(public_receipt["version"], "maya_repo_brief_public_receipt_v0_2")
+        self.assertEqual(public_receipt["version"], "maya_sentinel_public_receipt_v0_2")
         self.assertTrue(public_receipt["static_only"])
         self.assertFalse(public_receipt["executed_repo_code"])
         self.assertIn("action_boundaries", public_receipt)

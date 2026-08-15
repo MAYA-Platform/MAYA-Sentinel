@@ -226,7 +226,7 @@ AI_COMPONENT_RULES = [
 
 REMEDIATION_BY_CATEGORY = {
     "archive_safety": "Keep the archive static-only, preserve the blocked receipt, and only inspect a trusted sanitized export if a human explicitly wants deeper review.",
-    "credential": "Remove the secret from source, rotate the credential if real, and rerun Repo Brief before execution.",
+    "credential": "Remove the secret from source, rotate the credential if real, and rerun Sentinel before execution.",
     "install_hook": "Review install hooks manually; do not install until the hook is understood and approved.",
     "process": "Review command/process execution paths and require manual safety approval before running.",
     "filesystem": "Review filesystem/persistence behavior and keep execution blocked until scoped.",
@@ -288,7 +288,7 @@ SECURITY_TOOL_SURFACE_RULES = [
         "id": "live_target_scan",
         "label": "Live target scan surface",
         "patterns": [r"\b(cidr|port scan|scan target|target url|recon|penetration testing|pentest|vulnerability scan)\b"],
-        "recommended_action": "Treat live-target scan behavior as approval-gated; Repo Brief may analyze the repo, not run scans against targets.",
+        "recommended_action": "Treat live-target scan behavior as approval-gated; Sentinel may analyze the repo, not run scans against targets.",
     },
 ]
 
@@ -1293,7 +1293,7 @@ def build_governance_surface(root: Path) -> dict[str, Any]:
 def build_security_tool_surface(root: Path | None) -> dict[str, Any]:
     """Extract static security-tool/review-surface signals from scanner/integration repos.
 
-    Batch B taught Repo Brief a useful distinction: a repo can describe powerful scanners,
+    Batch B taught Sentinel a useful distinction: a repo can describe powerful scanners,
     CI actions, API discovery, or MCP exposure checks without MAYA being allowed to run any
     of them. This surface captures those patterns as review metadata only.
     """
@@ -1684,7 +1684,7 @@ def build_advisory_triage(
     if not focus:
         focus.append("static repo review")
 
-    owner = "Repo Brief review"
+    owner = "Sentinel review"
     if decision in {"block_review_before_any_run", "deep_artifact_escalation"}:
         owner = "Manual safety review"
     elif component_counts.get("mcp_server", 0) or component_counts.get("agent_instruction", 0):
@@ -1771,7 +1771,7 @@ def build_agentic_surface(
     if security_routing.get("decision") == "block_review_before_any_run":
         posture = "hold"
 
-    owner = "Repo Brief review"
+    owner = "Sentinel review"
     if posture in {"policy_review", "hold"}:
         owner = "MAYA policy review"
     elif counts["security_scanner"] or counts["model_or_prompt_asset"]:
@@ -1954,8 +1954,8 @@ def build_public_receipt(result: dict[str, Any]) -> dict[str, Any]:
     axes = result.get("axes", {})
     security_tool_surface = result.get("security_tool_surface", {})
     return {
-        "version": "maya_repo_brief_public_receipt_v0_1",
-        "tool": "MAYA Repo Brief",
+        "version": "maya_sentinel_public_receipt_v0_1",
+        "tool": "MAYA Sentinel",
         "source_zip": result.get("source_zip"),
         "source_sha256": result.get("source_sha256"),
         "completed_at": result.get("completed_at"),
@@ -1968,7 +1968,7 @@ def build_public_receipt(result: dict[str, Any]) -> dict[str, Any]:
         "archive_safety": receipt.get("archive_safety", {}).get("status", "unknown"),
         "review_decision": routing.get("decision", "standard_static_review"),
         "human_gate_required": bool(routing.get("human_gate_required") or boundary.get("manual_approval_required")),
-        "review_route": triage.get("owner", "Repo Brief review"),
+        "review_route": triage.get("owner", "Sentinel review"),
         "axis_statuses": {name: axis.get("status_label") for name, axis in axes.items()},
         "finding_count": len(result.get("findings", [])),
         "component_count": result.get("ai_bom", {}).get("component_count", 0),
@@ -2110,7 +2110,7 @@ def build_security_routing(
             offensive_signal_hits += 1
 
     decision = "standard_static_review"
-    recommended_lane = "Stay in MAYA Repo Brief static review, read the grouped findings, and only escalate if a human wants deeper analysis."
+    recommended_lane = "Stay in MAYA Sentinel static review, read the grouped findings, and only escalate if a human wants deeper analysis."
     why = [
         "Tier 1 static screening completed without a red-flag execution blocker.",
         "No deeper vulnerability or artifact review path is required before human review.",
@@ -2323,8 +2323,8 @@ def build_blocked_scan_result(zip_path: Path, sha: str, started: str, error: Zip
         blocked_reason=str(error),
     )
     result = {
-        "tool": "MAYA Repo Brief",
-        "version": "0.2.0",
+        "tool": "MAYA Sentinel",
+        "version": "1.0.0",
         "fence": FENCE,
         "disclaimer": DISCLAIMER,
         "started_at": started,
@@ -2399,8 +2399,8 @@ def build_deadline_scan_result(zip_path: Path, sha: str, started: str, error: Sc
         "Do not run, install, import, or promote code from this archive based on an incomplete scan.",
     ]
     result = {
-        "tool": "MAYA Repo Brief",
-        "version": "0.2.0",
+        "tool": "MAYA Sentinel",
+        "version": "1.0.0",
         "fence": FENCE,
         "disclaimer": DISCLAIMER,
         "started_at": started,
@@ -2639,8 +2639,8 @@ def scan_zip(zip_path: str | Path, work_root: str | Path | None = None, policy: 
             status = PUBLIC_REVIEW if status == PUBLIC_NO_SIGNAL else status
         artifact_receipt = build_artifact_receipt(zip_path, sha, inventory, metadata, ai_bom, deps, extraction_metrics=extraction_metrics)
         result = {
-            "tool": "MAYA Repo Brief",
-            "version": "0.2.0",
+            "tool": "MAYA Sentinel",
+            "version": "1.0.0",
             "fence": FENCE,
             "disclaimer": DISCLAIMER,
             "started_at": started,

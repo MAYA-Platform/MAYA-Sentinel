@@ -6,9 +6,80 @@ const results = document.getElementById('results');
 const historyGrid = document.getElementById('historyGrid');
 const historySummary = document.getElementById('historySummary');
 const clearHistoryButton = document.getElementById('clearHistoryButton');
+const modeHint = document.getElementById('modeHint');
 
 let sessionReady = false;
 let sessionToken = '';
+let activeMode = 'safety';
+
+const MODE_DEFINITIONS = {
+  safety: {
+    label: 'Safety Scan',
+    axes: ['Risk Surface', 'Credential Exposure', 'Binary Surface', 'Filesystem Surface', 'Install Observations'],
+    categories: ['credential', 'binary', 'install_hook', 'filesystem', 'process', 'archive_safety', 'obfuscation'],
+    prompt: 'Credentials, binaries, install hooks, filesystem and process risk. Is this safe to run?',
+  },
+  phishing: {
+    label: 'Phishing / Impersonation',
+    axes: ['Phishing Surface', 'Risk Surface', 'Network Surface'],
+    categories: ['phishing', 'network', 'intrusiveness'],
+    prompt: 'Shortlinks, lookalike domains, scam tracking stacks, harvest wording. Is this a scam?',
+  },
+  'supply-chain': {
+    label: 'Dependency & Supply Chain',
+    axes: ['Dependency Risk', 'Install Observations', 'Risk Surface'],
+    categories: ['dependency', 'install_hook', 'credential'],
+    prompt: 'Dependencies, lockfiles, install hooks, version drift. What does this pull in?',
+  },
+  'ai-surface': {
+    label: 'AI / Agent Surface',
+    axes: ['Risk Surface'],
+    categories: [],
+    prompt: 'MCP servers, agent instructions, prompts, workflows. Does this drive agents?',
+  },
+  exfil: {
+    label: 'Exfil & Telemetry',
+    axes: ['Phishing Surface', 'Intrusiveness', 'Network Surface'],
+    categories: ['phishing', 'intrusiveness', 'network'],
+    prompt: 'Webhook endpoints, tracking stacks, data collection. Does this phone home?',
+  },
+  archive: {
+    label: 'Archive Safety',
+    axes: ['Archive Safety', 'Storage Footprint', 'Binary Surface'],
+    categories: ['archive_safety', 'binary'],
+    prompt: 'Traversal, bombs, symlinks, path tricks. Is the ZIP itself hostile?',
+  },
+};
+
+function setActiveMode(mode) {
+  if (!MODE_DEFINITIONS[mode]) return;
+  activeMode = mode;
+  document.querySelectorAll('.mode-card').forEach(button => {
+    const isActive = button.dataset.mode === mode;
+    button.classList.toggle('active', isActive);
+    button.setAttribute('aria-selected', String(isActive));
+  });
+  if (modeHint) {
+    const def = MODE_DEFINITIONS[mode];
+    modeHint.textContent = `${def.label} is active. ${def.prompt}`;
+  }
+}
+
+function findingsForMode(findings = []) {
+  const def = MODE_DEFINITIONS[activeMode];
+  if (!def || activeMode === 'safety') return findings;
+  return findings.filter(finding => def.categories.includes(finding.category));
+}
+
+function axesForMode(axes = {}) {
+  const def = MODE_DEFINITIONS[activeMode];
+  if (!def || activeMode === 'safety') return Object.entries(axes);
+  const preferred = def.axes;
+  const entries = Object.entries(axes);
+  const ordered = preferred.map(name => entries.find(([key]) => key === name)).filter(Boolean);
+  const rest = entries.filter(([name]) => !preferred.includes(name));
+  return [...ordered, ...rest];
+}
 
 const PUBLIC_STATES = new Set(['No signal detected by this scan', 'Review', 'Risk', 'Blocked']);
 const UI_STATES = new Set([...PUBLIC_STATES, 'Scanning', 'Error']);
@@ -76,7 +147,7 @@ function formatScanIdForDisplay(value, maxLength = 28) {
   return `${text.slice(0, headLength)}…${text.slice(-tailLength)}`;
 }
 
-function publicReviewLabel(value, fallback = 'Repo Brief review') {
+function publicReviewLabel(value, fallback = 'Sentinel review') {
   return String(value || fallback);
 }
 
@@ -186,8 +257,8 @@ function renderStateSummary(result, finalState) {
 }
 
 function renderResult(result, options = {}) {
-  const axes = Object.entries(result.axes || {});
-  const findings = result.findings || [];
+  const axes = axesForMode(result.axes || {});
+  const findings = findingsForMode(result.findings || []);
   const bom = result.ai_bom || {};
   const groups = result.finding_groups || [];
   const remediation = result.remediation_plan || [];
@@ -205,10 +276,12 @@ function renderResult(result, options = {}) {
   const actions = recommendedActions(result);
 
   results.classList.remove('hidden');
+  const modeDef = MODE_DEFINITIONS[activeMode];
   results.innerHTML = `
     <section class="summary result-state-${stateClass}" aria-labelledby="resultTitle">
       <p class="eyebrow">MAYA static decision brief</p>
-      <h2 id="resultTitle">${escapeHtml(result.tool || 'MAYA Repo Brief')}</h2>
+      <h2 id="resultTitle">${escapeHtml(result.tool || 'MAYA Sentinel')}</h2>
+      ${modeDef && activeMode !== 'safety' ? `<p class="mode-active-note">Scan focus: <strong>${escapeHtml(modeDef.label)}</strong>. ${escapeHtml(modeDef.prompt)}</p>` : ''}
       ${renderStateSummary(result, finalState)}
       <div class="priority-block">
         <h3>Highest-impact findings</h3>
@@ -243,7 +316,7 @@ function renderResult(result, options = {}) {
       <ul>${renderLooseList(boundary.instruction_surface_integrity?.checks, 'No extra instruction-surface checks were emitted.')}</ul>
     `, { open: true, meta: boundary.manual_approval_required ? 'approval gate visible' : 'static review' })}
     ${renderPanel('Agentic / MCP Surface', `
-      ${renderInlineMeta([['Posture', normalizeState(agentic.posture, agentic.posture || 'Review')], ['Review route', publicReviewLabel(agentic.owner, 'Repo Brief review')]])}
+      ${renderInlineMeta([['Posture', normalizeState(agentic.posture, agentic.posture || 'Review')], ['Review route', publicReviewLabel(agentic.owner, 'Sentinel review')]])}
       ${objectChipRow(componentCounts, 'No agentic component counts emitted.')}
       <table>
         <thead><tr><th>Surface</th><th>Count</th><th>Summary</th></tr></thead>
@@ -386,7 +459,7 @@ async function clearHistory() {
 async function scanFile(file) {
   if (!file) return;
   if (!file.name.toLowerCase().endsWith('.zip')) {
-    announceUiState('Error', 'MAYA Repo Brief v0.2 only accepts repo ZIP files.');
+    announceUiState('Error', 'MAYA Sentinel v1.0 only accepts repo ZIP files.');
     focusElement(statusBox);
     return;
   }
@@ -444,6 +517,10 @@ historyGrid?.addEventListener('click', event => {
   if (button) deleteHistory(button.dataset.scanId);
 });
 clearHistoryButton?.addEventListener('click', clearHistory);
+
+document.querySelectorAll('.mode-card').forEach(button => {
+  button.addEventListener('click', () => setActiveMode(button.dataset.mode));
+});
 
 ensureSession().catch(() => {
   setStatus('Error: local session could not be initialized.', 'error');

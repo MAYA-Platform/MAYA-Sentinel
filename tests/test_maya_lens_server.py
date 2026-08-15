@@ -11,7 +11,7 @@ import maya_lens_server
 
 
 class MayaLensServerTests(unittest.TestCase):
-    def test_all_responses_emit_public_beta_browser_hardening_headers(self):
+    def test_all_responses_emit_public_browser_hardening_headers(self):
         handler = maya_lens_server.MayaLensHandler.__new__(maya_lens_server.MayaLensHandler)
         headers = {}
         handler.wfile = io.BytesIO()

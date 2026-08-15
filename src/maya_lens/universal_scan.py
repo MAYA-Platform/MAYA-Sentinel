@@ -1,5 +1,5 @@
 """
-universal_scan.py — Universal archive dispatcher for MAYA Repo Brief.
+universal_scan.py — Universal archive dispatcher for MAYA Sentinel.
 
 Extends scan_zip to handle any file type:
   - Archives (.zip, .jar, .war, .ear, .kmz, .oxt) → normal scan
@@ -65,7 +65,7 @@ def universal_scan(path: str | Path) -> dict[str, Any]:
     
     # 3. Tarballs → not directly zipfile-compatible
     if ext in TAR_EXTENSIONS:
-        return _result("Review", f"Tarball detected ({ext}). Repo Brief's scanner doesn't extract tarballs directly — uncompress and scan the inner archive.")
+        return _result("Review", f"Tarball detected ({ext}). Sentinel's scanner doesn't extract tarballs directly — uncompress and scan the inner archive.")
     
     # 4. Unknown extension → try ZIP anyway, fallback to binary scan
     result = _try_scan_as_zip(path, scan_zip)
@@ -160,7 +160,7 @@ def _get_ext(path: Path) -> str:
 
 
 def _result(signal: str, summary: str, **extra: Any) -> dict[str, Any]:
-    """Build a clean result dict matching Repo Brief's public-safe schema."""
+    """Build a clean result dict matching Sentinel's public-safe schema."""
     return {
         "ok": True,
         "signal": signal,

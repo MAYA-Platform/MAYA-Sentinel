@@ -1,6 +1,6 @@
 # Contributing
 
-This public beta is feedback-first.
+MAYA Sentinel is feedback-first.
 
 ## Best ways to help
 
@@ -10,7 +10,7 @@ This public beta is feedback-first.
 
 ## Code contributions
 
-Unsolicited pull requests are not accepted during the controlled public beta unless a maintainer explicitly invites one. This keeps the release boundary reviewable while the architecture settles.
+Pull requests are welcome for bug fixes, documentation, and bounded feature improvements. For larger changes, open an issue first so the direction is clear before you invest the work.
 
 ## Security
 

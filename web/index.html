@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MAYA Repo Brief · See what MAYA sees</title>
+  <title>MAYA Sentinel · See what MAYA sees</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2312100f'/%3E%3Ccircle cx='32' cy='32' r='18' fill='%23ff7a39' fill-opacity='.22'/%3E%3Ctext x='32' y='38' text-anchor='middle' font-family='Segoe UI,Arial,sans-serif' font-size='22' font-weight='700' fill='%23ffe6d7'%3EM%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
@@ -11,12 +11,12 @@
   <div class="ambient ambient-a"></div>
   <div class="ambient ambient-b"></div>
   <main class="shell">
-    <nav class="topbar" aria-label="MAYA Repo Brief status">
+    <nav class="topbar" aria-label="MAYA Sentinel status">
       <div class="brand-lockup">
         <span class="brand-mark">M</span>
         <div>
-          <strong>MAYA Repo Brief v0.2</strong>
-          <span>First-party beta candidate</span>
+          <strong>MAYA Sentinel v1.0</strong>
+          <span>Local repo scanner</span>
         </div>
       </div>
       <div class="contract-chips">
@@ -32,14 +32,14 @@
         <p class="eyebrow">Context before execution</p>
         <h1>See what MAYA sees before repo code runs.</h1>
         <p class="lead">Drop a repo ZIP. MAYA inspects the static risk surface, maps AI/component signals, and leaves a receipt-backed brief without installing, uploading, or executing anything.</p>
-        <div class="hero-points" aria-label="What Repo Brief surfaces before anything runs">
+        <div class="hero-points" aria-label="What Sentinel surfaces before anything runs">
           <span class="hero-pill">AI / Component BOM</span>
           <span class="hero-pill">Action Boundary Review</span>
           <span class="hero-pill">Public Receipt</span>
           <span class="hero-pill">Agentic / MCP Surface</span>
         </div>
       </div>
-      <aside class="decision-core" aria-label="Repo Brief flow">
+      <aside class="decision-core" aria-label="Sentinel flow">
         <div class="core-ring"><span>MAYA</span></div>
         <ol class="flow-spine">
           <li><b>1</b><span>ZIP stays local</span></li>
@@ -51,14 +51,49 @@
       </aside>
     </section>
 
+    <section class="mode-picker" aria-label="Choose what to scan for">
+      <div class="mode-picker-head">
+        <p class="eyebrow">Choose your scan focus</p>
+        <h2>What do you want Sentinel to look for?</h2>
+        <p class="lead">Every mode runs the same local static scan. The report just leads with what matters for your question.</p>
+      </div>
+      <div class="mode-grid" role="tablist" aria-label="Scan modes">
+        <button class="mode-card active" data-mode="safety" role="tab" aria-selected="true" aria-controls="results">
+          <strong>Safety Scan</strong>
+          <span>Credentials, binaries, install hooks, filesystem and process risk. Is this safe to run?</span>
+        </button>
+        <button class="mode-card" data-mode="phishing" role="tab" aria-selected="false" aria-controls="results">
+          <strong>Phishing / Impersonation</strong>
+          <span>Shortlinks, lookalike domains, scam tracking stacks, harvest wording. Is this a scam?</span>
+        </button>
+        <button class="mode-card" data-mode="supply-chain" role="tab" aria-selected="false" aria-controls="results">
+          <strong>Dependency &amp; Supply Chain</strong>
+          <span>Dependencies, lockfiles, install hooks, version drift. What does this pull in?</span>
+        </button>
+        <button class="mode-card" data-mode="ai-surface" role="tab" aria-selected="false" aria-controls="results">
+          <strong>AI / Agent Surface</strong>
+          <span>MCP servers, agent instructions, prompts, workflows. Does this drive agents?</span>
+        </button>
+        <button class="mode-card" data-mode="exfil" role="tab" aria-selected="false" aria-controls="results">
+          <strong>Exfil &amp; Telemetry</strong>
+          <span>Webhook endpoints, tracking stacks, data collection. Does this phone home?</span>
+        </button>
+        <button class="mode-card" data-mode="archive" role="tab" aria-selected="false" aria-controls="results">
+          <strong>Archive Safety</strong>
+          <span>Traversal, bombs, symlinks, path tricks. Is the ZIP itself hostile?</span>
+        </button>
+      </div>
+      <p id="modeHint" class="mode-hint" role="note">Safety Scan is the default. Pick a mode to aim the report at one question.</p>
+    </section>
+
     <section id="dropZone" class="drop-zone" aria-labelledby="dropTitle" aria-describedby="dropDisclosure">
       <input id="zipInput" class="file-input" type="file" accept=".zip,application/zip" tabindex="-1" aria-label="Repository ZIP file chooser" aria-describedby="dropDisclosure" />
       <div class="pulse"></div>
       <div class="drop-copy">
         <p class="eyebrow">Local static review</p>
         <h2 id="dropTitle">Drop a repo ZIP here</h2>
-        <p>MAYA scans structure, dependencies, credentials-shaped findings, binaries, network/process/filesystem surfaces, provenance, and storage footprint.</p>
-        <p id="dropDisclosure" class="local-disclosure">Repo Brief performs bounded static analysis locally. It does not execute repository code or install dependencies. It cannot prove that a repository is safe. Reports are retained locally until deleted.</p>
+        <p>Sentinel scans structure, dependencies, credential-shaped findings, binaries, network, process, filesystem, phishing and AI surfaces, then leads the report with your chosen focus.</p>
+        <p id="dropDisclosure" class="local-disclosure">Sentinel performs bounded static analysis locally. It does not execute repository code or install dependencies. It cannot prove that a repository is safe. Reports are retained locally until deleted.</p>
         <button id="browseButton" class="file-browse-button" type="button" aria-describedby="dropDisclosure" aria-controls="zipInput" aria-label="Choose a repository ZIP file">Browse ZIP</button>
       </div>
       <div class="drop-helper" aria-label="What lands in the brief">

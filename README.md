@@ -1,20 +1,33 @@
-# MAYA Repo Brief
+# MAYA Sentinel
 
 **See what's inside a repo before you run it.**
 
-Scan any file for hidden AI features, credential leaks, and security risks before
-you install: ZIP, .exe, .msi, .apk, .dmg, .deb, .rpm, and more. 100% local, zero
-execution, zero dependencies.
+MAYA Sentinel is a local repository ZIP scanner for bounded static analysis. It inspects archive structure and source signals, then produces public-safe Markdown, HTML, and JSON receipts. It never executes repository code, never installs dependencies, and never phones home.
 
-**What MAYA sees before repo code runs, now you can see it too.**
+> Sentinel cannot prove that a repository is safe. It identifies static signals that help a human decide what deserves deeper review.
 
-MAYA Repo Brief is a local repository ZIP scanner for bounded static analysis. It inspects archive structure and selected source signals, then produces public-safe Markdown, HTML, and JSON receipts, without executing repository code or installing a single dependency.
+![MAYA Sentinel scan result](docs/images/sentinel-result.png)
 
-> Repo Brief cannot prove that a repository is safe. It identifies static signals that help a human decide what deserves deeper review.
+Upload a ZIP and read the decision brief. Every scan runs locally and stays local.
 
-![MAYA Repo Brief scan result](docs/images/repo-brief-result.png)
+## Scan modes
 
-Upload a ZIP and watch the scan run, then read the decision brief.
+Pick a focus before you drop the ZIP. Every mode runs the same local static scan; the report just leads with what matters for your question.
+
+| Mode | Question it answers |
+|---|---|
+| **Safety Scan** | Is this safe to run? Credentials, binaries, install hooks, filesystem and process risk. |
+| **Phishing / Impersonation** | Is this a scam? Shortlinks, lookalike domains, scam tracking stacks, credential-harvest and wallet-drainer wording. |
+| **Dependency & Supply Chain** | What does this pull in? Dependencies, lockfiles, install hooks, version drift. |
+| **AI / Agent Surface** | Does this drive agents? MCP servers, agent instructions, prompts, workflows. |
+| **Exfil & Telemetry** | Does this phone home? Webhook endpoints, tracking stacks, data collection. |
+| **Archive Safety** | Is the ZIP itself hostile? Traversal, bombs, symlinks, path tricks. |
+
+CLI scans take the same focus flag:
+
+```bash
+python maya_lens_server.py --scan path/to/repository.zip --mode phishing
+```
 
 ## What it catches
 
@@ -40,7 +53,7 @@ Requirements: Python 3.11, 3.12, or 3.13.
 Windows:
 
 ```text
-OPEN - MAYA Repo Brief.cmd
+OPEN - MAYA Sentinel.cmd
 ```
 
 Any supported platform:
@@ -57,14 +70,14 @@ No dependency installation is required.
 
 ```bash
 python maya_lens_server.py --scan path/to/repository.zip
+python maya_lens_server.py --scan path/to/repository.zip --mode supply-chain
 ```
+
+Modes: `safety` (default), `phishing`, `supply-chain`, `ai-surface`, `exfil`, `archive`.
 
 ## Why it exists
 
-AI-generated and AI-agent-driven code is everywhere now, and so is the
-temptation to install first, inspect never. Repo Brief is the five-second
-inspection layer: bounded, local, and honest about what it can and cannot prove.
-The repo ecosystem is getting faster. Your review process should be, too.
+AI-generated and AI-agent-driven code is everywhere now, and so is the temptation to install first, inspect never. Sentinel is the five-second inspection layer: bounded, local, and honest about what it can and cannot prove. The repo ecosystem is getting faster. Your review process should be, too.
 
 ## Verification
 
@@ -78,7 +91,7 @@ python tests/test_public_release_contract.py
 node --check web/app.js
 ```
 
-A ready-to-enable GitHub Actions template is included at `docs/ci/verify.yml.example`; local verification remains the release authority for this beta.
+A ready-to-enable GitHub Actions template is included at `docs/ci/verify.yml.example`; local verification remains the release authority.
 
 ## Privacy and retention
 
@@ -94,6 +107,6 @@ The server binds to loopback and uses Host, Origin, and in-memory session-token 
 
 ## License
 
-MAYA Repo Brief is distributed under the 2ndNatureAi Public Beta Evaluation License 1.0. See [LICENSE.txt](LICENSE.txt) for the full terms.
+MIT License. See [LICENSE.txt](LICENSE.txt) for the full terms.
 
 Copyright (c) 2026 2ndNatureAi.

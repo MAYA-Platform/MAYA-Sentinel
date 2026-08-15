@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-PUBLIC_RECEIPT_VERSION = "maya_repo_brief_public_receipt_v0_2"
+PUBLIC_RECEIPT_VERSION = "maya_sentinel_public_receipt_v0_2"
 
 PUBLIC_NO_SIGNAL = "No signal detected by this scan"
 PUBLIC_REVIEW = "Review"

@@ -26,7 +26,7 @@ class PublicReleaseContractTests(unittest.TestCase):
     def test_readme_commands_are_standalone_and_reference_shipped_files(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         self.assertNotIn("tools/maya-lens", readme)
-        self.assertNotIn("repo_brief_p1_reproduction", readme)
+        self.assertNotIn("sentinel_p1_reproduction", readme)
         self.assertIn("python tests/test_maya_lens_scanner.py", readme)
         self.assertIn("python tests/test_maya_lens_server.py", readme)
 

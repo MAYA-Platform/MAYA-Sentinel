@@ -1,7 +1,7 @@
 {
  "schema": "2ndnatureai_public_release_manifest_v1",
- "product": "MAYA Repo Brief",
- "version": "0.2.0-beta.3",
+ "product": "MAYA Sentinel",
+ "version": "1.0.0",
  "source": "verified private source commit 251c00e plus standalone public-release metadata",
  "entries": [
   {
@@ -11,8 +11,8 @@
   },
   {
    "path": "CONTRIBUTING.md",
-   "bytes": 620,
-   "sha256": "1a57ce2351d36333923099922f8fa0dd94850ff688a86b3d5194d17c49d3a811"
+   "bytes": 605,
+   "sha256": "c4cc68bd2619cfe41e70cbeed4614022294afa3704241987db9cd01475b3865e"
   },
   {
    "path": "docs/ci/verify.yml.example",
@@ -20,109 +20,109 @@
    "sha256": "ae66d4aa16e2c92c19421e19cb4ba855394929f1c519426acffb36987b7fa018"
   },
   {
-   "path": "docs/images/repo-brief-mobile.png",
+   "path": "docs/images/sentinel-mobile.png",
    "bytes": 235838,
    "sha256": "d772064a6d6318e0d940cba78c077388921fc0a0b21a71527ff9452648709b8a"
   },
   {
-   "path": "docs/images/repo-brief-result.png",
+   "path": "docs/images/sentinel-result.png",
    "bytes": 172057,
    "sha256": "9946035aa505c682539a5d535d8bca9475ae50b491b712dc66c90dc1238b8031"
   },
   {
    "path": "LICENSE.txt",
-   "bytes": 1175,
-   "sha256": "bacda940ea1fb0f96a01a603537c946211e2ed32c1f044b1b8fb2ae4dbc405cc"
+   "bytes": 1089,
+   "sha256": "85b6ed8bfb4a2e5837d70eb69f52b700c9772be6ad8c8ee793154e9c0312e3b0"
   },
   {
    "path": "maya_lens_server.py",
-   "bytes": 21252,
-   "sha256": "c9e3f221b9aeb06e262aa3d70dba0f71529befcf82971709ec4c5207d6dab983"
+   "bytes": 23386,
+   "sha256": "b3c09054abe13b189783a3a0e49096e5b6504c32cc3c246079a8d4ba9ed1e2ff"
   },
   {
-   "path": "OPEN - MAYA Repo Brief.cmd",
-   "bytes": 1315,
-   "sha256": "6bf29ed079c1f940ea83306af77c4726d6cea460ee4609c58e4124a1e87fd1e5"
+   "path": "OPEN - MAYA Sentinel.cmd",
+   "bytes": 1261,
+   "sha256": "65f5fc0b5ce44ec691704db5876ee562e6417f1889fefd9686aea2dcb07479b2"
   },
   {
    "path": "README.md",
-   "bytes": 3901,
-   "sha256": "2b146b78de009fc317330fed0de31b6e914b968e75264d460a04f0fcb0b7453b"
+   "bytes": 4629,
+   "sha256": "6e40dc395004c417ffce9924bb440c057c949bd031e92a7c09a36984772713ce"
   },
   {
    "path": "RELEASE_NOTES.md",
-   "bytes": 1721,
-   "sha256": "f9d3c0a98fe9a1b225e7a5612d018b7949e1786371938cc09e52b337d5c64a89"
+   "bytes": 1851,
+   "sha256": "88ada1245203db9f681099c67d7c32b57f9539a8da418919005d3b6d434ae454"
   },
   {
    "path": "SAFETY_BOUNDARY.md",
-   "bytes": 1030,
-   "sha256": "b81f40daac7a39091e6a2dc22df11ae77149c6d084d17ef20bb1066feb7d30cc"
+   "bytes": 1003,
+   "sha256": "d0253700e7339159f2467688a7c9e7ba8472a75aa9d3a4531f5681f11105ff08"
   },
   {
    "path": "SECURITY.md",
-   "bytes": 1047,
-   "sha256": "c5a8549986320701b56880f6d376fa8ac9e8d004cd2afbe4428600667ffbcc62"
+   "bytes": 1005,
+   "sha256": "59cc9eb23cdf722d5bdcf73c61a46c6fd9d1efad4f4c717d0bc6a649586910d7"
   },
   {
    "path": "src/maya_lens/__init__.py",
-   "bytes": 99,
-   "sha256": "69e9245f1332cdaa6bd887e6e0657a54662820777c14bd1e6a14b7784263b1d5"
+   "bytes": 94,
+   "sha256": "630ecc13e8546f9c1031964439eb3920f51d1719adec3d750bea30ded16aa7e0"
   },
   {
    "path": "src/maya_lens/public_safety.py",
-   "bytes": 17546,
-   "sha256": "a45fae111c5be19add74fc2e6247a5ea42b18aa878a349a4785573eb10fdd1da"
+   "bytes": 17011,
+   "sha256": "f1f3c8250123d6a3832bdb22f342d0f14105a90d513bea35a0045ada94fd6e7f"
   },
   {
    "path": "src/maya_lens/report.py",
-   "bytes": 33250,
-   "sha256": "560ff8346430ace4fd428c8e3fd3960422787d2696ec1f1571c6c29e1377f8bf"
+   "bytes": 32871,
+   "sha256": "d1a09d04f1e1db64199520c92ce3cd51f2cc86ad068e47f689496e5276d84e88"
   },
   {
    "path": "src/maya_lens/retention.py",
-   "bytes": 6049,
-   "sha256": "dcba10e0d6644e7b39322d58da65eb6bf580afceb3e4f7686cc57814cf7767e1"
+   "bytes": 5901,
+   "sha256": "83bb82e26d050cec504602dfdfca12749978c2757ebb1b63197bf824abd4c4a0"
   },
   {
    "path": "src/maya_lens/scanner.py",
-   "bytes": 136325,
-   "sha256": "6f189d82be1cb512adfa0d21113f70fb3942db7b34fb13225af9e4ac240e8c57"
+   "bytes": 133607,
+   "sha256": "b463ab4427687992c5400f613f072652da3ad750dc725fc2bac64921e11a3a46"
   },
   {
    "path": "tests/test_maya_lens_scanner.py",
-   "bytes": 35592,
-   "sha256": "b6ba6d3f1621449a664286f60ec875ca4ef5f22fbd6acbeabb9eb795c7870e7b"
+   "bytes": 34899,
+   "sha256": "7dff60992d851d2fa4643fc3eedebb62242631df93259d0b053f35c36f68dfab"
   },
   {
    "path": "tests/test_maya_lens_server.py",
-   "bytes": 2112,
-   "sha256": "5dc8988c50c8cc657083f2c0c24e9a13759fc831f703e35400902a1438193837"
+   "bytes": 2060,
+   "sha256": "92034067adaa1a53252a8ade77274201f059ae2d9f92b54cce5065e3fc91c5e3"
   },
   {
    "path": "tests/test_public_release_contract.py",
-   "bytes": 5134,
-   "sha256": "4b8c3c5e4eb430570f2f3c31ee9882c4847c378be96567fab8f1caec96ac7e6f"
+   "bytes": 5034,
+   "sha256": "2d67f92618b4a3612fb6748a7bbd44ea3ef8aac94dfb8b4956f731b55c8c8451"
   },
   {
    "path": "web/app.js",
-   "bytes": 26559,
-   "sha256": "e26961aca1b57e4a2b253216771683fa63e942fcafa1dd761508cd872cd5247a"
+   "bytes": 29343,
+   "sha256": "3fd660460efa8d961b40b9c60aaf5cdc2bc6bbbb5c11a0bf45bb86bf7289a897"
   },
   {
    "path": "web/index.html",
-   "bytes": 5502,
-   "sha256": "4812309287f6bc9c3dbf79342cb93b1ce0433483f3fbace997e72f4f479a2edb"
+   "bytes": 7698,
+   "sha256": "6a15c363e6a13528d7fec20564678acf19832f6322d33deb1b198373a8e67530"
   },
   {
    "path": "web/styles.css",
-   "bytes": 18281,
-   "sha256": "1ffb90303d0b6f4f0fab3f16d182f68751e316933b0a1892cc5fc2c3eacd1c76"
+   "bytes": 20192,
+   "sha256": "f5e3ab94f2833965599cc06128c41c5fc8c3f2cd1b0d831a2cb7891cc7e2d2ea"
   },
   {
    "path": "src/maya_lens/universal_scan.py",
-   "bytes": 6647,
-   "sha256": "4aae45e746ee91c543ac25745c359e190f15856e8603062053b4389f2b31ac98"
+   "bytes": 6641,
+   "sha256": "3b9811efcb83771fd4f0d6785d07205fe783910d4cc92605710233933a977184"
   },
   {
    "path": ".github/ISSUE_TEMPLATE/bug_report.yml",

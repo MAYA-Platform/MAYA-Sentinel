@@ -1,4 +1,4 @@
-# MAYA Repo Brief Safety Boundary
+# MAYA Sentinel Safety Boundary
 
 ## Allowed behavior
 

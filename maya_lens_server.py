@@ -27,7 +27,7 @@ REPORTS = ROOT / "reports" / "public-v0.2"
 HISTORY = DATA / "scan_history_public_v0_2.json"
 HOST = "127.0.0.1"
 PORT = 5182
-VERSION = "0.2.0"
+VERSION = "1.0.0"
 
 MAX_UPLOAD_BYTES = 80 * 1024 * 1024
 MAX_MULTIPART_PARTS = 8
@@ -267,10 +267,10 @@ class MayaLensHandler(BaseHTTPRequestHandler):
             self._validate_request_source()
             path = self.path.split("?", 1)[0]
             if path == "/api/health":
-                status, body, ctype = json_bytes({"app": "maya-repo-brief", "version": VERSION, "status": "ok"})
+                status, body, ctype = json_bytes({"app": "maya-sentinel", "version": VERSION, "status": "ok"})
                 return self._send(status, body, ctype)
             if path == "/api/session":
-                status, body, ctype = json_bytes({"ok": True, "app": "maya-repo-brief", "version": VERSION, "token": SESSION_TOKEN})
+                status, body, ctype = json_bytes({"ok": True, "app": "maya-sentinel", "version": VERSION, "token": SESSION_TOKEN})
                 return self._send(status, body, ctype)
             if path == "/api/history":
                 status, body, ctype = json_bytes({"ok": True, "items": retained_history().list()})
@@ -375,7 +375,7 @@ class MayaLensHandler(BaseHTTPRequestHandler):
 def server_alive(port: int = PORT) -> bool:
     try:
         with urllib.request.urlopen(f"http://{HOST}:{port}/api/health", timeout=1.5) as resp:
-            if resp.status != 200 or json.loads(resp.read().decode("utf-8")) != {"app": "maya-repo-brief", "version": VERSION, "status": "ok"}:
+            if resp.status != 200 or json.loads(resp.read().decode("utf-8")) != {"app": "maya-sentinel", "version": VERSION, "status": "ok"}:
                 return False
         with urllib.request.urlopen(f"http://{HOST}:{port}/api/session", timeout=1.5) as resp:
             headers = {key.lower(): value for key, value in resp.headers.items()}
@@ -385,7 +385,7 @@ def server_alive(port: int = PORT) -> bool:
                 resp.status == 200
                 and headers.get("set-cookie") is None
                 and payload.get("ok") is True
-                and payload.get("app") == "maya-repo-brief"
+                and payload.get("app") == "maya-sentinel"
                 and payload.get("version") == VERSION
                 and isinstance(token, str)
                 and len(token) >= 32
@@ -406,13 +406,13 @@ def _make_server(preferred_port: int = PORT) -> ThreadingHTTPServer:
         return httpd
     except OSError as exc:
         if getattr(exc, "winerror", None) != 10048 and getattr(exc, "errno", None) not in {48, 98}:
-            raise RuntimeError("Could not start local MAYA Repo Brief server.") from exc
+            raise RuntimeError("Could not start local MAYA Sentinel server.") from exc
     try:
         httpd = ThreadingHTTPServer((HOST, 0), MayaLensHandler)
         _ACTIVE_PORT = int(httpd.server_address[1])
         return httpd
     except OSError as exc:
-        raise RuntimeError("Could not start local MAYA Repo Brief server on a loopback port.") from exc
+        raise RuntimeError("Could not start local MAYA Sentinel server on a loopback port.") from exc
 
 
 def run_server(open_browser: bool = True) -> None:
@@ -426,24 +426,84 @@ def run_server(open_browser: bool = True) -> None:
         pass
     if open_browser:
         threading.Timer(0.6, lambda: open_ui(_ACTIVE_PORT)).start()
-    print(f"MAYA Repo Brief v{VERSION} running at http://{HOST}:{_ACTIVE_PORT}/")
+    print(f"MAYA Sentinel v{VERSION} running at http://{HOST}:{_ACTIVE_PORT}/")
     httpd.serve_forever()
 
 
+MODE_PROJECTIONS = {
+    "safety": {
+        "label": "Safety Scan",
+        "axes": ["Risk Surface", "Credential Exposure", "Binary Surface", "Filesystem Surface", "Install Observations"],
+        "categories": {"credential", "binary", "install_hook", "filesystem", "process", "archive_safety", "obfuscation"},
+    },
+    "phishing": {
+        "label": "Phishing / Impersonation",
+        "axes": ["Phishing Surface", "Risk Surface", "Network Surface"],
+        "categories": {"phishing", "network", "intrusiveness"},
+    },
+    "supply-chain": {
+        "label": "Dependency & Supply Chain",
+        "axes": ["Dependency Risk", "Install Observations", "Risk Surface"],
+        "categories": {"dependency", "install_hook", "credential"},
+    },
+    "ai-surface": {
+        "label": "AI / Agent Surface",
+        "axes": ["Risk Surface"],
+        "categories": set(),
+    },
+    "exfil": {
+        "label": "Exfil & Telemetry",
+        "axes": ["Phishing Surface", "Intrusiveness", "Network Surface"],
+        "categories": {"phishing", "intrusiveness", "network"},
+    },
+    "archive": {
+        "label": "Archive Safety",
+        "axes": ["Archive Safety", "Storage Footprint", "Binary Surface"],
+        "categories": {"archive_safety", "binary"},
+    },
+}
+
+
+def apply_mode_projection(result: dict[str, Any], mode: str) -> dict[str, Any]:
+    """Reorder/filter a scan result to lead with a chosen scan focus.
+
+    Same mode set as the web UI. The full scan data stays intact in the
+    result; only presentation order (axes) and the lead findings list are
+    projected. Mode 'safety' returns the result unchanged.
+    """
+    projection = MODE_PROJECTIONS.get(mode or "safety")
+    if not projection or mode == "safety":
+        return result
+    axes = result.get("axes", {})
+    entries = list(axes.items())
+    preferred = [item for name in projection["axes"] for item in entries if item[0] == name]
+    rest = [item for item in entries if item[0] not in projection["axes"]]
+    result = dict(result)
+    result["axes"] = dict(preferred + rest)
+    findings = result.get("findings", [])
+    if projection["categories"]:
+        result["findings"] = [f for f in findings if f.get("category") in projection["categories"]]
+    result["mode"] = {"id": mode, "label": projection["label"]}
+    return result
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description=f"MAYA Repo Brief v{VERSION} local repo ZIP scanner")
+    parser = argparse.ArgumentParser(description=f"MAYA Sentinel v{VERSION} local repo ZIP scanner")
     parser.add_argument("--scan", help="Scan a ZIP from the command line and print public-safe JSON")
+    parser.add_argument("--mode", default="safety", choices=["safety", "phishing", "supply-chain", "ai-surface", "exfil", "archive"],
+                        help="Report focus: safety (default), phishing, supply-chain, ai-surface, exfil, archive")
     parser.add_argument("--no-browser", action="store_true", help="Start server without opening browser")
     args = parser.parse_args()
     if args.scan:
         scan_path = Path(args.scan)
         if not scan_path.exists():
-            print(f"MAYA Repo Brief error: scan target not found: {scan_path}", file=sys.stderr)
+            print(f"MAYA Sentinel error: scan target not found: {scan_path}", file=sys.stderr)
             return 2
         result = build_public_projection(universal_scan(scan_path))
         if not result.get("disclaimer"):
-            print("MAYA Repo Brief error: scan produced an incomplete result; no report written.", file=sys.stderr)
+            print("MAYA Sentinel error: scan produced an incomplete result; no report written.", file=sys.stderr)
             return 2
+        result = apply_mode_projection(result, args.mode)
         reports = write_reports(result, REPORTS)
         result["reports"] = build_public_projection({"reports": reports}).get("reports", {})
         retained_history().append(history_record(result, reports))

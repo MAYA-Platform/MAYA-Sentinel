@@ -10,7 +10,7 @@ from typing import Any
 
 from .public_safety import PUBLIC_RECEIPT_VERSION, build_public_projection, public_state
 
-HISTORY_VERSION = "maya_repo_brief_retained_history_v0_2"
+HISTORY_VERSION = "maya_sentinel_retained_history_v0_2"
 SCAN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,160}$")
 
 

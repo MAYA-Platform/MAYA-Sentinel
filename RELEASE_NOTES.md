@@ -1,26 +1,19 @@
-# MAYA Repo Brief v0.2.0-beta.3
+# MAYA Sentinel v1.0.0
 
-Phishing and brand-impersonation detection surface, built from a real 2026-08-15 campaign.
+The full static scanner release. MAYA Sentinel is a local repository ZIP scanner that surfaces risk signals before any code runs, with no execution, no installs, and no network calls.
 
-## Added in beta.3
+## New in 1.0.0
 
-- **Phishing Surface axis**: flags shortlink funnels, lookalike domains, brand-impersonation hosts, scam ad/tracking stacks (Yandex Metrika, mail.ru counters, digitalcaramel, ad-fraud networks), credential-harvest and wallet-drainer wording, and exfiltration endpoints (Discord webhooks, Telegram bots, paste/transfer hosts)
-- **Escalation rules**: multiple phishing signals co-occurring with process/network/credential surface route to `block_review_before_any_run`; a lone signal routes to advisory enrichment
-- **False-positive control**: documentation references stay advisory; code/HTML signals carry the weight
-- Regression coverage: live campaign reproduction, docs-reference advisory lane, clean-repo no-signal
+- **Six scan modes** in the web UI and CLI (`--mode`): Safety Scan, Phishing / Impersonation, Dependency & Supply Chain, AI / Agent Surface, Exfil & Telemetry, Archive Safety. Pick a focus before you drop the ZIP; the report leads with what matters for your question.
+- **Phishing and brand-impersonation detection surface** built from a real 2026 campaign that mass-mentioned GitHub users and redirected them to a fake `hermes-agent.icu`. Detects shortlink funnels, lookalike domains, scam ad/tracking stacks, credential-harvest and wallet-drainer wording, and exfiltration endpoints.
+- **MIT License** replacing the previous beta evaluation license. Use, host, fork, and build on it freely.
+- Public beta tags removed. This is the release line.
 
-## Added in beta.2
-
-- Guaranteed 44px **Clear all** touch target at mobile widths
-- Middle-ellipsized visible history scan IDs for calmer mobile layouts
-- Full scan IDs preserved in title, accessibility labels, and deletion controls
-- Explicit browser permission denial for Bluetooth and Serial APIs
-- Focused private-source and standalone regression coverage
-
-## Existing beta capabilities
+## Scanner capability
 
 - Bounded ZIP intake and archive-safety checks
-- Static signal scanner
+- Static signal scanning across credentials, binaries, install hooks, filesystem, process, network, phishing, and intrusiveness surfaces
+- AI/component BOM and agent/MCP workflow surfaces
 - Public-safe projection layer
 - Markdown, HTML, and JSON receipts
 - Local history and deletion controls
@@ -30,3 +23,9 @@ Phishing and brand-impersonation detection surface, built from a real 2026-08-15
 ## Boundaries
 
 Static analysis only. No repository code execution, dependency installation, cloud upload, telemetry, malware-clearance claim, or production SLA.
+
+## Prior beta lineage
+
+- beta.3 (2026-08-15): phishing and brand-impersonation detection surface
+- beta.2: mobile touch targets, middle-ellipsized scan IDs, browser permission hardening
+- beta.1: initial public release, ZIP intake, static scanner, receipts

@@ -6,7 +6,7 @@ set "APP=%ROOT%maya_lens_server.py"
 set "SRC=%ROOT%src"
 
 if not exist "%APP%" (
-  echo MAYA Repo Brief launcher error:
+  echo MAYA Sentinel launcher error:
   echo Expected server entry was not found:
   echo   %APP%
   exit /b 2
@@ -24,18 +24,18 @@ if defined PY_CMD goto :run
 call :try_python "python"
 if defined PY_CMD goto :run
 
-echo MAYA Repo Brief launcher error:
+echo MAYA Sentinel launcher error:
 echo No supported Python runtime was found.
 echo Install Python 3.11, 3.12, or 3.13, then run this launcher again.
 exit /b 2
 
 :run
-echo Starting MAYA Repo Brief with %PY_CMD%
+echo Starting MAYA Sentinel with %PY_CMD%
 %PY_CMD% "%APP%"
 set "EXIT_CODE=%ERRORLEVEL%"
 if not "%EXIT_CODE%"=="0" (
   echo.
-  echo MAYA Repo Brief stopped with exit code %EXIT_CODE%.
+  echo MAYA Sentinel stopped with exit code %EXIT_CODE%.
 )
 exit /b %EXIT_CODE%
 

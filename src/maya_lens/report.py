@@ -22,7 +22,7 @@ def _axis_status_label(axis: dict[str, Any]) -> str:
     return public_state(axis.get("status_label") or {"green": PUBLIC_NO_SIGNAL, "blue": PUBLIC_REVIEW, "amber": PUBLIC_REVIEW, "orange": PUBLIC_REVIEW, "red": PUBLIC_RISK}.get(axis.get("color"), PUBLIC_REVIEW))
 
 
-def _public_review_label(value: Any, fallback: str = "Repo Brief review") -> str:
+def _public_review_label(value: Any, fallback: str = "Sentinel review") -> str:
     return str(value or fallback)
 
 
@@ -33,7 +33,7 @@ def _recommended_actions(triage: dict[str, Any]) -> list[str]:
 def render_markdown_report(result: dict[str, Any]) -> str:
     result = build_public_projection(result)
     lines: list[str] = []
-    lines.append(f"# MAYA Repo Brief — {result.get('source_zip', 'repo.zip')}")
+    lines.append(f"# MAYA Sentinel — {result.get('source_zip', 'repo.zip')}")
     lines.append("")
     lines.append(f"> {result['disclaimer']}")
     lines.append("")
@@ -175,7 +175,7 @@ def render_markdown_report(result: dict[str, Any]) -> str:
     lines.append("")
     triage = result.get("advisory_triage", {})
     lines.append(f"- **Urgency:** `{triage.get('urgency', 'review')}`")
-    lines.append(f"- **Review route:** `{_public_review_label(triage.get('owner', 'Repo Brief review'))}`")
+    lines.append(f"- **Review route:** `{_public_review_label(triage.get('owner', 'Sentinel review'))}`")
     lines.append(f"- **Primary focus:** `{', '.join(triage.get('primary_focus', []))}`")
     for item in triage.get("top_categories", [])[:5]:
         lines.append(f"- **{item.get('category', 'signal')}** · {item.get('signal', '')} · count `{item.get('count', 0)}` · max `{item.get('max_severity', 'info')}`")
@@ -186,7 +186,7 @@ def render_markdown_report(result: dict[str, Any]) -> str:
     lines.append("")
     agentic = result.get("agentic_surface", {})
     lines.append(f"- **Posture:** `{agentic.get('posture', 'reference_only')}`")
-    lines.append(f"- **Review route:** `{_public_review_label(agentic.get('owner', 'Repo Brief review'))}`")
+    lines.append(f"- **Review route:** `{_public_review_label(agentic.get('owner', 'Sentinel review'))}`")
     counts = agentic.get("component_counts", {})
     lines.append(f"- **Counts:** `{json.dumps(counts, ensure_ascii=False)}`")
     for surface in agentic.get("surfaces", []):
@@ -348,7 +348,7 @@ def render_html_report(result: dict[str, Any]) -> str:
 <head>
 <meta charset=\"utf-8\" />
 <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
-<title>MAYA Repo Brief — {_escape(result.get('source_zip', 'repo.zip'))}</title>
+<title>MAYA Sentinel — {_escape(result.get('source_zip', 'repo.zip'))}</title>
 <style>
 :root{{--bg:#12100f;--panel:#1a1816;--panel2:#201d1a;--text:#f2e6df;--muted:#a3968e;--accent:#ff7a39;--border:#3d2a1a;--green:#58c88a;--blue:#6fa7d7;--amber:#f2c777;--orange:#ff7a39;--red:#d95f56;}}
 body{{margin:0;background:radial-gradient(circle at 20% 0%,rgba(255,122,57,.12),transparent 30%),var(--bg);color:var(--text);font-family:Segoe UI,system-ui,sans-serif;padding:36px;}}
@@ -366,7 +366,7 @@ h1{{margin:0;font-size:30px;letter-spacing:-.04em;}} .sub{{color:var(--muted);ma
 </head>
 <body><main>
 <header>
-  <h1>MAYA Repo Brief</h1>
+  <h1>MAYA Sentinel</h1>
   <div class=\"sub\">{_escape(result.get('source_zip', 'repo.zip'))} · status {_escape(result.get('status', 'unknown'))} · fence {_escape(result.get('fence', ''))}</div>
   <div class=\"disclaimer\">{_escape(result.get('disclaimer', ''))}</div>
 </header>
@@ -379,8 +379,8 @@ h1{{margin:0;font-size:30px;letter-spacing:-.04em;}} .sub{{color:var(--muted);ma
 <section class=\"card\"><h2>Security Tool Surface</h2><p>Posture: <code>{_escape(security_tool_surface.get('posture', 'not available'))}</code> · Human scope required: <code>{_escape(security_tool_surface.get('human_scope_required', False))}</code></p><blockquote><code>{_escape(json.dumps(security_counts, ensure_ascii=False))}</code></blockquote><table><thead><tr><th>Surface</th><th>Path</th><th>Recommended action</th></tr></thead><tbody>{security_rows}</tbody></table><ul>{security_actions}</ul></section>
 <section class=\"card\"><h2>Finding Groups</h2><table><thead><tr><th>Count</th><th>Max Severity</th><th>Category</th><th>Signal</th><th>Samples</th></tr></thead><tbody>{group_rows}</tbody></table></section>
 <section class=\"card\"><h2>Remediation Plan</h2><ol>{remediation_items}</ol></section>
-<section class=\"card\"><h2>Advisory Triage</h2><p>Urgency: <code>{_escape(advisory_triage.get('urgency', 'review'))}</code> · Review route: <code>{_escape(_public_review_label(advisory_triage.get('owner', 'Repo Brief review')))}</code></p><blockquote>{_escape(', '.join(advisory_triage.get('primary_focus', [])))}</blockquote><table><thead><tr><th>Category</th><th>Signal</th><th>Count</th><th>Max Severity</th></tr></thead><tbody>{triage_rows}</tbody></table><ul>{triage_actions}</ul></section>
-<section class=\"card\"><h2>Agent/tooling surface</h2><p>Posture: <code>{_escape(agentic_surface.get('posture', 'reference_only'))}</code> · Review route: <code>{_escape(_public_review_label(agentic_surface.get('owner', 'Repo Brief review')))}</code></p><blockquote><code>{_escape(json.dumps(agentic_surface.get('component_counts', {}), ensure_ascii=False))}</code></blockquote><table><thead><tr><th>Surface</th><th>Count</th><th>Key</th></tr></thead><tbody>{agentic_rows}</tbody></table><ul>{agentic_checks}</ul></section>
+<section class=\"card\"><h2>Advisory Triage</h2><p>Urgency: <code>{_escape(advisory_triage.get('urgency', 'review'))}</code> · Review route: <code>{_escape(_public_review_label(advisory_triage.get('owner', 'Sentinel review')))}</code></p><blockquote>{_escape(', '.join(advisory_triage.get('primary_focus', [])))}</blockquote><table><thead><tr><th>Category</th><th>Signal</th><th>Count</th><th>Max Severity</th></tr></thead><tbody>{triage_rows}</tbody></table><ul>{triage_actions}</ul></section>
+<section class=\"card\"><h2>Agent/tooling surface</h2><p>Posture: <code>{_escape(agentic_surface.get('posture', 'reference_only'))}</code> · Review route: <code>{_escape(_public_review_label(agentic_surface.get('owner', 'Sentinel review')))}</code></p><blockquote><code>{_escape(json.dumps(agentic_surface.get('component_counts', {}), ensure_ascii=False))}</code></blockquote><table><thead><tr><th>Surface</th><th>Count</th><th>Key</th></tr></thead><tbody>{agentic_rows}</tbody></table><ul>{agentic_checks}</ul></section>
 <section class=\"card\"><h2>Security Routing</h2><p>Decision: <code>{routing_decision}</code> · Human gate: <code>{routing_human_gate}</code></p><blockquote>{routing_lane}</blockquote><ul>{routing_why}</ul></section>
 <section class=\"card\"><h2>Findings</h2><table><thead><tr><th>Severity</th><th>Category</th><th>Path</th><th>Line</th><th>Signal</th><th>Evidence</th></tr></thead><tbody>{finding_rows}</tbody></table></section>
 <section class=\"card\"><h2>Inventory</h2><pre><code>{_escape(json.dumps(result.get('inventory', {}), indent=2))}</code></pre></section>
