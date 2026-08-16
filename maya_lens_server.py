@@ -222,7 +222,7 @@ def _safe_report_path(name: str) -> Path:
 
 
 class MayaLensHandler(BaseHTTPRequestHandler):
-    server_version = "MAYARepoBrief/0.2"
+    server_version = "MAYA-Sentinel/" + VERSION
 
     def log_message(self, fmt, *args):
         return

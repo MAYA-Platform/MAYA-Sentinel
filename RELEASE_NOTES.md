@@ -6,8 +6,8 @@ The full static scanner release. MAYA Sentinel is a local repository ZIP scanner
 
 - **Six scan modes** in the web UI and CLI (`--mode`): Safety Scan, Phishing / Impersonation, Dependency & Supply Chain, AI / Agent Surface, Exfil & Telemetry, Archive Safety. Pick a focus before you drop the ZIP; the report leads with what matters for your question.
 - **Phishing and brand-impersonation detection surface** built from a real 2026 campaign that mass-mentioned GitHub users and redirected them to a fake `hermes-agent.icu`. Detects shortlink funnels, lookalike domains, scam ad/tracking stacks, credential-harvest and wallet-drainer wording, and exfiltration endpoints.
-- **MIT License** replacing the previous beta evaluation license. Use, host, fork, and build on it freely.
-- Public beta tags removed. This is the release line.
+- **MIT License** replacing the previous evaluation license. Use, host, fork, and build on it freely.
+- This is the release line.
 
 ## Scanner capability
 
