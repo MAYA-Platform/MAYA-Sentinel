@@ -79,5 +79,37 @@ class AgenticAttackDetectionTests(unittest.TestCase):
         self.assertEqual(len(keys), 1)
 
 
+class BatesianProtocolVocabularyTests(unittest.TestCase):
+    """ASI07 enriched with calbebop/batesian MCP/A2A attack classes."""
+
+    def test_oauth_scope_escalation(self):
+        hits = _signals("oauth dynamic client registration scope escalation", "mcp/server.py")
+        self.assertTrue(any("oauth scope escalation" in k for k in hits))
+
+    def test_audience_binding_bug(self):
+        hits = _signals("jws algorithm confusion via audience substring matcher", "a2a/card.go")
+        self.assertTrue(any("audience binding bug" in k for k in hits))
+
+    def test_unauthenticated_tool_surface(self):
+        hits = _signals("tools accessible without authentication", "mcp/routes.py")
+        self.assertTrue(any("unauthenticated tool surface" in k for k in hits))
+
+    def test_task_idor(self):
+        hits = _signals("task readable across authorization contexts", "a2a/tasks.go")
+        self.assertTrue(any("task idor" in k for k in hits))
+
+    def test_protocol_downgrade(self):
+        hits = _signals("protocol version downgrade auth bypass", "mcp/init.go")
+        self.assertTrue(any("protocol downgrade" in k for k in hits))
+
+    def test_jsonrpc_batch_bypass(self):
+        hits = _signals("json-rpc batch authentication bypass", "mcp/handlers.py")
+        self.assertTrue(any("jsonrpc batch bypass" in k for k in hits))
+
+    def test_benign_protocol_line_clean(self):
+        hits = _signals("def handle_request(payload): return process(payload)")
+        self.assertEqual(hits, {})
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -112,10 +112,36 @@ ASI06_CONTEXT_POISONING_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 
 # ---------------------------------------------------------------------------
 # ASI07 — Insecure Inter-Agent Communication (missing auth / conditional access).
+# Enriched with the MCP/A2A protocol attack-class vocabulary absorbed from
+# calbebop/batesian (18 MCP rules + 17 A2A rules, each CWE-mapped). These are
+# protocol-posture signals — missing auth, downgrade, IDOR, SSRF, confusion —
+# distinct from the prompt-injection payloads in ASI01/ASI06.
 # ---------------------------------------------------------------------------
 ASI07_INTERAGENT_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("interagent missing conditional access", re.compile(
         r"(conditional[- ]access|inter[- ]agent (communication|trust)|service[- ]principal (sign[- ]in|auth))", re.IGNORECASE)),
+    ("interagent oauth scope escalation", re.compile(
+        r"(oauth (dcr|dynamic client registration|scope escalation)|scope escalation|redirect[\-_ ]uri|confused deputy)", re.IGNORECASE)),
+    ("interagent audience binding bug", re.compile(
+        r"(audience (matching|binding|claim)|aud[- ]substring|aud[- ]case[- ]canonical|jws algorithm confusion|alg[- ]confusion|jwt (forgery|impersonation))", re.IGNORECASE)),
+    ("interagent unauthenticated tool surface", re.compile(
+        r"(unauthenticated (resource|tool|prompt|task|completion|logging)|without authentication|missing (auth|authorization)|no auth|anonymous (client|access))", re.IGNORECASE)),
+    ("interagent task idor", re.compile(
+        r"(task idor|idor|insecure direct object|task (readable|cancel|cancellation) (across|cross)|cross[- ]principal|multi[- ]tenant (isolation|task))", re.IGNORECASE)),
+    ("interagent session fixation", re.compile(
+        r"(session (fixation|smuggling|id fixation|id reuse)|context (fixation|id fixation)|role injection)", re.IGNORECASE)),
+    ("interagent protocol downgrade", re.compile(
+        r"(protocol (version )?downgrade|version downgrade|extension downgrade|fail[- ]open|init downgrade)", re.IGNORECASE)),
+    ("interagent jsonrpc batch bypass", re.compile(
+        r"(json[- ]?rpc batch|batch authentication bypass|request smuggling|header[/ ]body split|split[- ]brain)", re.IGNORECASE)),
+    ("interagent push ssrf", re.compile(
+        r"(push notification ssrf|webhook (ssrf|control[- ]plane)|push binding|callback ssrf|metadata[- ]fetch ssrf)", re.IGNORECASE)),
+    ("interagent agent card trust", re.compile(
+        r"(agent[- ]?card (trust|security|disclosure|host injection)|card security unenforced|well[- ]?known host|extended agent card)", re.IGNORECASE)),
+    ("interagent token replay", re.compile(
+        r"(token (replay|signature)|forged token|sse resumption replay|credential (canary|leakage|reflected)|secret canary)", re.IGNORECASE)),
+    ("interagent artifact tamper", re.compile(
+        r"(artifact (tamper|tampering)|delegation (integrity|chain[- ]of[- ]custody)|task artifact)", re.IGNORECASE)),
 ]
 
 # Order matters for attribution: a single line can trip multiple ASI classes,
