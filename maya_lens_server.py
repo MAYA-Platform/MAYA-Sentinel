@@ -449,7 +449,7 @@ MODE_PROJECTIONS = {
     "ai-surface": {
         "label": "AI / Agent Surface",
         "axes": ["Risk Surface"],
-        "categories": set(),
+        "categories": {"agentic_attack"},
     },
     "exfil": {
         "label": "Exfil & Telemetry",

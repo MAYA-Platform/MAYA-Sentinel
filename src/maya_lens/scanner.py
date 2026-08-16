@@ -28,6 +28,7 @@ from .public_safety import (
     public_state,
     sanitize_string,
 )
+from .agentic_attack import classify_agentic_attack_signals, summarize_agentic
 
 DISCLAIMER = "Static analysis only. No runtime sandboxing performed. This is not a guarantee of safety."
 FENCE = "read_only_static_analysis"
@@ -236,6 +237,7 @@ REMEDIATION_BY_CATEGORY = {
     "obfuscation": "Inspect encoded/large generated content manually before trusting the repo.",
     "intrusiveness": "Review telemetry/fingerprinting behavior before using in a user-facing or local runtime surface.",
     "phishing": "Treat shortlink, lookalike-domain, credential-harvest, wallet-drainer, or exfil-endpoint signals as high-priority review. Verify the destination of every shortened/lookalike URL before trusting or executing anything from the repo. Do not run installers or connect wallets from a repo carrying these signals.",
+    "agentic_attack": "Treat prompt-injection, goal-hijack, MCP tool-definition mutation, XPIA/context-poisoning, or privilege-elevation payloads as high-priority agentic-surface review. Do not import, execute, or grant tool access to a repo that carries live override or exfiltration payloads. Reference docs that merely quote these phrases are advisory, not actionable.",
 }
 
 ADVISORY_URGENCY_BY_DECISION = {
@@ -1451,6 +1453,8 @@ def scan_files(root: Path, inventory: dict[str, Any], deps: dict[str, Any]) -> l
                     add_finding(findings, category="intrusiveness", severity="medium", path=rel, line=idx, signal=signal, snippet=line)
             for signal, severity in classify_phishing_signals(line, rel):
                 add_finding(findings, category="phishing", severity=severity, path=rel, line=idx, signal=signal, snippet=line)
+            for signal, severity in classify_agentic_attack_signals(line, rel):
+                add_finding(findings, category="agentic_attack", severity=severity, path=rel, line=idx, signal=signal, snippet=line)
     return findings
 
 
