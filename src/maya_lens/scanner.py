@@ -1172,6 +1172,36 @@ def parse_dependencies(root: Path, findings: list[dict[str, Any]]) -> dict[str, 
     }
 
 
+def _strip_credentials(url: str) -> str:
+    """Remove embedded credentials from a git/HTTP(S) remote URL, scheme-agnostically.
+
+    Handles https://user:pass@host, http://user:pass@host, git+https://user:pass@host,
+    ssh://user@host, and the scp-like git@host:org/repo.git form. Never leaks the
+    userinfo segment into source_url or repo_identity.
+    """
+    if not url:
+        return url
+    # scp-like: git@host:org/repo.git  ->  host/org/repo.git
+    if "://" not in url and "@" in url:
+        return url.split("@", 1)[1].replace(":", "/", 1)
+    # Strip userinfo across any scheme (https://, http://, git+https://, ssh://).
+    return re.sub(r"(://)[^/@]+@", r"\1", url)
+
+
+def _repo_identity(url: str) -> str:
+    """Derive a stable repo identity from any git remote URL without hardcoding GitHub."""
+    if not url:
+        return "Unknown local ZIP"
+    cleaned = _strip_credentials(url)
+    cleaned = cleaned.replace("git+", "", 1)
+    cleaned = re.sub(r"^[a-zA-Z][a-zA-Z0-9+.-]*://", "", cleaned)  # drop scheme
+    cleaned = cleaned.replace("github.com/", "", 1).replace("gitlab.com/", "", 1).replace("bitbucket.org/", "", 1)
+    cleaned = cleaned.rstrip("/")
+    if cleaned.endswith(".git"):
+        cleaned = cleaned[:-4]
+    return cleaned or "Unknown local ZIP"
+
+
 def infer_metadata(root: Path) -> dict[str, Any]:
     metadata: dict[str, Any] = {"repo_identity": "Unknown local ZIP", "source_url": None, "license": None, "readme_title": None, "provenance_signals": []}
     git_config = root / ".git" / "config"
@@ -1184,9 +1214,9 @@ def infer_metadata(root: Path) -> dict[str, Any]:
         text = git_config.read_text(encoding="utf-8", errors="replace")
         m = re.search(r"url\s*=\s*(.+)", text)
         if m:
-            url = re.sub(r"https://[^/@]+:[^/@]+@", "https://", m.group(1).strip())
+            url = _strip_credentials(m.group(1).strip())
             metadata["source_url"] = url
-            metadata["repo_identity"] = url.replace("https://github.com/", "").replace(".git", "")
+            metadata["repo_identity"] = _repo_identity(url)
             metadata["provenance_signals"].append("git remote detected")
     for package_json in root.rglob("package.json"):
         check_scan_deadline("metadata scan")
@@ -1201,7 +1231,7 @@ def infer_metadata(root: Path) -> dict[str, Any]:
             if isinstance(repo, dict):
                 repo = repo.get("url")
             metadata["source_url"] = str(repo)
-            metadata["repo_identity"] = str(repo).replace("git+", "").replace("https://github.com/", "").replace(".git", "")
+            metadata["repo_identity"] = _repo_identity(str(repo))
         if data.get("author"):
             metadata["author"] = data.get("author")
         break

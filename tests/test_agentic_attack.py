@@ -132,3 +132,28 @@ class PortCrashRegressionTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class CredentialLeakRegressionTests(unittest.TestCase):
+    """v4-pro finding: infer_metadata only redacted https:// creds; fixed scheme-agnostically."""
+
+    def test_http_credentials_stripped(self):
+        from maya_lens.scanner import _strip_credentials
+        self.assertEqual(_strip_credentials("http://alice:secret@example.com/x.git"), "http://example.com/x.git")
+
+    def test_git_plus_https_credentials_stripped(self):
+        from maya_lens.scanner import _strip_credentials
+        self.assertEqual(_strip_credentials("git+https://bob:pw@gitlab.com/g/r.git"), "git+https://gitlab.com/g/r.git")
+
+    def test_scp_like_ssh_form_handled(self):
+        from maya_lens.scanner import _strip_credentials, _repo_identity
+        self.assertEqual(_strip_credentials("git@github.com:org/repo.git"), "github.com/org/repo.git")
+        self.assertEqual(_repo_identity("git@github.com:org/repo.git"), "org/repo")
+
+    def test_plain_url_unchanged(self):
+        from maya_lens.scanner import _strip_credentials, _repo_identity
+        self.assertEqual(_strip_credentials("https://github.com/plain/repo.git"), "https://github.com/plain/repo.git")
+        self.assertEqual(_repo_identity("https://github.com/plain/repo.git"), "plain/repo")
+
+
+if __name__ == "__main__":
+    unittest.main()
