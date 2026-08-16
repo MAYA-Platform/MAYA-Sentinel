@@ -116,8 +116,16 @@ def _sanitize_url(match: re.Match[str]) -> str:
         return "[REDACTED_URL]"
     hostname = parsed.hostname or ""
     netloc = hostname
-    if parsed.port:
-        netloc = f"{netloc}:{parsed.port}"
+    try:
+        port = parsed.port
+    except ValueError:
+        # urlsplit succeeds on `https://host:9100)` but `.port` then raises
+        # "Port could not be cast to integer value" because the trailing
+        # punctuation was swallowed into the netloc. Never let that crash a
+        # sanitization path — drop the port and keep the redacted host.
+        port = None
+    if port:
+        netloc = f"{netloc}:{port}"
     if parsed.username or parsed.password:
         netloc = f"[REDACTED_URL_CREDENTIALS]@{netloc}"
     query_pairs = []

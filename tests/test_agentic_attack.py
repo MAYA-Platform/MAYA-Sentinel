@@ -113,3 +113,22 @@ class BatesianProtocolVocabularyTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class PortCrashRegressionTests(unittest.TestCase):
+    """Regression: a URL with a trailing ')' before a port must not crash the sanitizer."""
+
+    def test_port_with_trailing_paren_does_not_crash(self):
+        from maya_lens import public_safety as ps
+        line = "requests.get('https://example.com:9100)')"
+        # Must not raise ValueError("Port could not be cast to integer value")
+        out = ps.sanitize_string(line)
+        self.assertIsInstance(out, str)
+
+    def test_plain_port_still_preserved(self):
+        from maya_lens import public_safety as ps
+        out = ps.sanitize_string("http://example.com:8080/path")
+        self.assertIn("example.com:8080", out)
+
+
+if __name__ == "__main__":
+    unittest.main()
