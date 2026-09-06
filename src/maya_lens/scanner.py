@@ -368,6 +368,73 @@ COMPILED_ACTION_BOUNDARY_RULES = [
     for rule in ACTION_BOUNDARY_RULES
 ]
 
+# ── MCP/agent audit rules (2026-09-05 Bank harvest) ──────────────────────────
+# Sourced from AgentWarden (AUTH/SSRF/INJECT check catalog), mcp-scan
+# (tool-description injection phrases), Vault (response-poisoning markers),
+# and Pipelock (tool-chain exfil). These extend the AI-surface mode with the
+# concrete MCP-server attack classes documented across the 2026 ecosystem.
+MCP_AUDIT_RULES = [
+    {
+        "id": "mcp_unauthenticated_endpoint",
+        "label": "MCP unauthenticated endpoint pattern",
+        "patterns": [
+            r"\bno authentication\b", r"\bAUTH-00[12]\b", r"jsonrpc.*without (auth|token)",
+            r"allow.?all origins", r"Access-Control-Allow-Origin.*\*",
+            r"listen\(.*0\.0\.0\.0", r"host.*0\.0\.0\.0.*mcp",
+        ],
+        "recommended_action": "MCP servers with unauthenticated JSON-RPC or wildcard CORS expose tool access to anyone. Require auth middleware before deployment.",
+    },
+    {
+        "id": "mcp_tool_description_injection",
+        "label": "MCP tool-description injection",
+        "patterns": [
+            r"ignore (all )?(previous|prior) instructions", r"before (answering|searching),? read",
+            r"read .*\.ssh/id_rsa", r"include .*in (the )?response for audit",
+            r"exfiltrat", r"send (all |the )?(conversation|context|data) to",
+            r"curl.*\|.*sh", r"base64.*(decode|exec)",
+            r"IMPORTANT:.*(always|must|never).*(call|invoke|execute)",
+        ],
+        "recommended_action": "Tool descriptions are instructions the model obeys. Injection phrases hidden in MCP tool definitions are CRITICAL: do not connect agents to this server.",
+    },
+    {
+        "id": "mcp_ssrf_tool_surface",
+        "label": "MCP SSRF via tool invocation",
+        "patterns": [
+            r"\bSSRF-00[12]\b", r"fetch.*user.(controlled|supplied).url", r"url.*parameter.*(fetch|request)",
+            r"requests\.(get|post)\(.*args", r"urllib.*urlopen\(.*input",
+            r"httpx.*get\(.*params.*url",
+        ],
+        "recommended_action": "Tools that fetch attacker-controlled URLs from the server side enable SSRF into internal networks. Validate allowlists server-side.",
+    },
+    {
+        "id": "mcp_secret_exfil_chain",
+        "label": "Tool-chain secret exfiltration",
+        "patterns": [
+            r"(read|cat|open).*(env|.env|credentials|secrets).*(send|post|upload)",
+            r"(env|environment).*(exfil|leak|upload|send)", r"webhook.*data.*secret",
+            r"\b(hook\.site|requestbin|pastebin\.com/api|ngrok)\b",
+            r"tools?\[.*\]\(.*secret",
+        ],
+        "recommended_action": "Tool chains that read secrets and forward them to external endpoints are exfiltration paths. Block reads-then-sends sequences in agent tool policies.",
+    },
+    {
+        "id": "mcp_response_poisoning",
+        "label": "Tool-response poisoning markers",
+        "patterns": [
+            r"(tool|function) result.*(instruction|directive)", r"data:.*ignore.*instructions",
+            r"<system>.*</system>.*inside", r"embedded.*prompt.*(tool|response)",
+            r"(resource|tool) (content|output).*(override|hijack)",
+        ],
+        "recommended_action": "Poisoned tool responses inject instructions after the agent reads them. Scan tool outputs through a firewall layer before agent consumption.",
+    },
+]
+
+COMPILED_MCP_AUDIT_RULES = [
+    {**rule, "compiled": [re.compile(pattern, re.IGNORECASE) for pattern in rule["patterns"]]}
+    for rule in MCP_AUDIT_RULES
+]
+
+
 @dataclass
 class ZipPolicy:
     max_files: int = MAX_FILES
@@ -1871,6 +1938,7 @@ def build_action_boundary_review(
     Static-only. This extracts authority-class signals; it never grants execution permission.
     """
     evidence_by_rule: dict[str, list[dict[str, Any]]] = {rule["id"]: [] for rule in COMPILED_ACTION_BOUNDARY_RULES}
+    mcp_evidence_by_rule: dict[str, list[dict[str, Any]]] = {rule["id"]: [] for rule in COMPILED_MCP_AUDIT_RULES}
 
     def add_evidence(rule_id: str, *, path: str, line: int | None = None, snippet: str = "") -> None:
         bucket = evidence_by_rule[rule_id]
@@ -1901,6 +1969,12 @@ def build_action_boundary_review(
                 for rule in COMPILED_ACTION_BOUNDARY_RULES:
                     if any(pattern.search(haystack) for pattern in rule["compiled"]):
                         add_evidence(rule["id"], path=rel, line=idx, snippet=line)
+                for mcp_rule in COMPILED_MCP_AUDIT_RULES:
+                    if any(pattern.search(haystack) for pattern in mcp_rule["compiled"]):
+                        bucket = mcp_evidence_by_rule[mcp_rule["id"]]
+                        entry = {"path": rel, "line": idx, "snippet": redact_line(line)}
+                        if entry not in bucket and len(bucket) < 8:
+                            bucket.append(entry)
 
     for hook in deps.get("install_hooks", []):
         add_evidence("tool_execution", path=hook.get("source", "package.json"), snippet=hook.get("command", "install hook"))
@@ -1920,6 +1994,18 @@ def build_action_boundary_review(
         evidence = evidence_by_rule[rule["id"]]
         if evidence:
             authority_classes.append({
+                "id": rule["id"],
+                "label": rule["label"],
+                "evidence_count": len(evidence),
+                "sample_evidence": evidence[:4],
+                "recommended_action": rule["recommended_action"],
+            })
+
+    mcp_audit_classes = []
+    for rule in COMPILED_MCP_AUDIT_RULES:
+        evidence = mcp_evidence_by_rule[rule["id"]]
+        if evidence:
+            mcp_audit_classes.append({
                 "id": rule["id"],
                 "label": rule["label"],
                 "evidence_count": len(evidence),
@@ -1954,6 +2040,8 @@ def build_action_boundary_review(
     recommended_actions = [item["recommended_action"] for item in authority_classes[:6]]
     if instruction_checks:
         recommended_actions.append("Keep instruction/tool surfaces in static review until a human approves the exact action boundary.")
+    for item in mcp_audit_classes[:3]:
+        recommended_actions.append(f"MCP audit [{item['id']}]: {item['recommended_action']}")
     if not recommended_actions:
         recommended_actions.append("No authority-sensitive action language surfaced; continue normal static review before trust.")
 
@@ -1962,6 +2050,7 @@ def build_action_boundary_review(
         "decision": "manual_review_required" if manual_required else "standard_static_review",
         "manual_approval_required": manual_required,
         "authority_classes": authority_classes,
+        "mcp_audit_classes": mcp_audit_classes,
         "recommended_actions": recommended_actions[:8],
         "instruction_surface_integrity": {
             "status": integrity_status,
