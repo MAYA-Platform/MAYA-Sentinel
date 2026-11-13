@@ -23,4 +23,4 @@ def ratio(a,b):
  x,y=sorted([lum(a),lum(b)]);return round((y+.05)/(x+.05),2)
 contrasts={name:ratio(a,b) for name,a,b in [('body','243a30','f5f3eb'),('muted','59665c','f5f3eb'),('amber','875a28','f5f3eb'),('card copy','536150','e9ece2'),('dark CTA','fffdf4','243a30'),('footer eyebrow','d7b57f','243a30')]}
 assert min(contrasts.values())>=4.5
-print(json.dumps({'static_checks':'pass','one_h1':True,'duplicate_ids':False,'internal_links':'all resolve','client_javascript':False,'font_or_image_network_requests':False,'contrast_ratios':contrasts,'browser_render':'BLOCKED: Chromium socket permission; cloud browser disallows file://','viewport_keyboard_screenreader_qa':'NOT RUN; must be completed before integration'},indent=2))
+print(json.dumps({'static_checks':'pass','one_h1':True,'duplicate_ids':False,'internal_links':'all resolve','client_javascript':False,'contrast_ratios':contrasts, 'browser_and_accessibility_qa':'not checked by this script'},indent=2))
