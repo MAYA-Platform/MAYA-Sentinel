@@ -1,0 +1,44 @@
+/* Landing presentation only; report and history components keep their existing styles. */
+body { background:#f2f2e9; color:#182c23; }
+.ambient { display:none; }
+.landing-skip { position:absolute; top:8px; left:8px; z-index:10; transform:translateY(-160%); padding:10px 14px; background:#183c2b; color:#fff; }
+.landing-skip:focus { transform:translateY(0); }
+.topbar { padding:8px 0 20px; border-bottom:1px solid #cbd2c8; }
+.brand-mark { background:#173f2c; border:0; color:#fff; border-radius:50%; box-shadow:none; }
+.brand-lockup strong { color:#172d23; }
+.brand-lockup span:last-child { color:#526158; }
+.contract-chips span { color:#4a6052; }
+.hero { margin-top:28px; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:44px; align-items:center; padding:44px 0; border:0; border-radius:0; background:none; box-shadow:none; backdrop-filter:none; }
+.hero .eyebrow, .mode-picker .eyebrow { color:#87602d; }
+.hero h1 { color:#173a2a; font-family:Georgia,serif; font-size:clamp(48px,5.5vw,76px); line-height:1.02; font-weight:500; letter-spacing:-.035em; }
+.hero .lead { color:#263d30; font-size:20px; line-height:1.45; margin:22px 0 0; }
+.landing-support { color:#53665a; max-width:480px; line-height:1.7; margin:15px 0 24px; }
+.landing-action { display:inline-flex; align-items:center; padding:15px 20px; background:#173f2c; border:1px solid #173f2c; border-radius:4px; color:#fff; font-size:14px; font-weight:700; text-decoration:none; }
+.landing-action:hover { background:#28583b; }
+.landing-boundary { color:#4d6054; max-width:470px; line-height:1.55; font-size:13px; }
+.landing-inspection { margin:0; padding:18px; border:1px solid #bfcbbf; background:#e6ebe0; box-shadow:0 18px 50px rgba(31,56,39,.10); }
+.landing-visual-label { display:flex; justify-content:space-between; color:#53685a; font-size:10px; letter-spacing:.14em; font-weight:700; }
+.landing-inspection svg { display:block; width:100%; height:auto; }
+.landing-inspection figcaption { border-top:1px solid #c1cfc1; padding-top:13px; color:#334c3b; display:grid; gap:4px; font-size:12px; }
+.landing-inspection figcaption strong { font-size:14px; }
+.landing-inspection figcaption small { color:#586e5d; }
+.mode-picker { margin-top:26px; padding:30px 0; background:none; border:0; box-shadow:none; }
+.mode-picker-head h2 { color:#173a2a; font-family:Georgia,serif; font-size:34px; font-weight:500; line-height:1.1; margin:0; }
+.mode-picker-head .lead { color:#526358; font-size:15px; }
+.mode-grid { margin-top:24px; }
+.mode-card { color:#20392a; background:#f8f9f3; border:1px solid #c6d2c5; box-shadow:none; border-radius:6px; }
+.mode-card strong { color:#1c3d2a; }
+.mode-card span { color:#526358; }
+.mode-card.active { background:#dfeadf; border-color:#326b46; box-shadow:inset 0 0 0 1px #326b46; }
+.mode-card.active strong { color:#173a2a; }
+.mode-hint { color:#4e6354; }
+.drop-zone { margin-top:0; background-color:#1a1816; color:#f2e6df; }
+.history-surface, .status { background-color:#1a1816; color:#f2e6df; }
+.results { color:#f2e6df; }
+.results .summary, .results .panel, .results .metric-card { background-color:#1a1816; }
+.landing-action:focus-visible, .mode-picker button:focus-visible, .landing-skip:focus-visible { outline:3px solid #956328; outline-offset:3px; }
+@media (max-width:760px) {
+  .hero { grid-template-columns:1fr; gap:24px; padding:28px 0; }
+  .hero h1 { font-size:clamp(46px,11vw,64px); }
+  .contract-chips { justify-content:flex-start; }
+}

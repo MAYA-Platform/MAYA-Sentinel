@@ -17,7 +17,7 @@ class PublicReleaseContractTests(unittest.TestCase):
     def test_public_metadata_and_runtime_files_exist(self):
         required = [
             "README.md", "LICENSE.txt", "SECURITY.md", "SAFETY_BOUNDARY.md",
-            "maya_lens_server.py", "web/index.html", "web/styles.css", "web/app.js",
+            "maya_lens_server.py", "web/index.html", "web/styles.css", "web/landing.css", "web/app.js",
             "src/maya_lens/scanner.py", "src/maya_lens/public_safety.py",
         ]
         for relative in required:
