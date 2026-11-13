@@ -6,11 +6,13 @@
   <title>MAYA Sentinel · See what MAYA sees</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2312100f'/%3E%3Ccircle cx='32' cy='32' r='18' fill='%23ff7a39' fill-opacity='.22'/%3E%3Ctext x='32' y='38' text-anchor='middle' font-family='Segoe UI,Arial,sans-serif' font-size='22' font-weight='700' fill='%23ffe6d7'%3EM%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/landing.css" />
 </head>
 <body>
+  <a class="landing-skip" href="#main">Skip to content</a>
   <div class="ambient ambient-a"></div>
   <div class="ambient ambient-b"></div>
-  <main class="shell">
+  <main class="shell" id="main">
     <nav class="topbar" aria-label="MAYA Sentinel status">
       <div class="brand-lockup">
         <span class="brand-mark">M</span>
@@ -30,25 +32,17 @@
     <section class="hero">
       <div class="hero-copy">
         <p class="eyebrow">Context before execution</p>
-        <h1>See what MAYA sees before repo code runs.</h1>
-        <p class="lead">Drop a repo ZIP. MAYA inspects the static risk surface, maps AI/component signals, and leaves a receipt-backed brief without installing, uploading, or executing anything.</p>
-        <div class="hero-points" aria-label="What Sentinel surfaces before anything runs">
-          <span class="hero-pill">AI / Component BOM</span>
-          <span class="hero-pill">Action Boundary Review</span>
-          <span class="hero-pill">Public Receipt</span>
-          <span class="hero-pill">Agentic / MCP Surface</span>
-        </div>
+        <h1>Know what<br />you’re running.</h1>
+        <p class="lead">Security review for AI tools, agents, and repositories.</p>
+        <p class="landing-support">Inspect a repository ZIP locally for selected risks. Review the findings before deciding what to run or trust.</p>
+        <a class="landing-action" href="#dropZone">Choose a repository ZIP</a>
+        <p class="landing-boundary">Bounded static analysis. No repository code is executed or dependencies installed. A scan cannot prove a repository is safe.</p>
       </div>
-      <aside class="decision-core" aria-label="Sentinel flow">
-        <div class="core-ring"><span>MAYA</span></div>
-        <ol class="flow-spine">
-          <li><b>1</b><span>ZIP stays local</span></li>
-          <li><b>2</b><span>Static scan only</span></li>
-          <li><b>3</b><span>Receipts generated</span></li>
-          <li><b>4</b><span>Human decides next</span></li>
-        </ol>
-        <p>Local decision support for repos, not a fake universal safety score.</p>
-      </aside>
+      <figure class="landing-inspection" aria-labelledby="inspection-caption">
+        <div class="landing-visual-label"><span>THE INSPECTION LAYER</span><span>01 / 03</span></div>
+        <svg viewBox="0 0 540 370" role="img" aria-labelledby="inspection-title inspection-description"><title id="inspection-title">From a repository to a review brief</title><desc id="inspection-description">Three stacked sheets represent archive structure, source signals and a readable brief. A line passes through the layers, representing inspection rather than execution.</desc><defs><pattern id="inspection-grid" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0H0V26" fill="none" stroke="#d4d2c6" stroke-width=".65"/></pattern><linearGradient id="inspection-paper" x2="1" y2="1"><stop stop-color="#faf8ef"/><stop offset="1" stop-color="#dfdfd1"/></linearGradient></defs><rect width="540" height="370" fill="url(#inspection-grid)" opacity=".55"/><ellipse cx="280" cy="285" rx="185" ry="42" fill="#25342e" opacity=".07"/><g stroke="#738278" stroke-width="1.3"><path d="M72 230 260 130 465 224 276 330Z" fill="#bfc9bf"/><path d="M72 189 260 89 465 183 276 289Z" fill="#d8dfd3"/><path d="M72 145 260 45 465 139 276 245Z" fill="url(#inspection-paper)"/></g><g stroke="#8b988d" stroke-width="3" stroke-linecap="round"><path d="m149 145 104-55m-84 65 130-69m-109 80 93-50"/><path d="m250 178 49-26m-29 35 81-43"/></g><path d="M282 42V308" stroke="#a56c2c" stroke-width="2"/><circle cx="282" cy="73" r="5" fill="#a56c2c"/><circle cx="282" cy="272" r="5" fill="#a56c2c"/></svg>
+        <figcaption id="inspection-caption"><strong>Inspect, don't execute.</strong><span>Archive structure · Source signals · Review brief</span><small>Illustration, not a scan result.</small></figcaption>
+      </figure>
     </section>
 
     <section class="mode-picker" aria-label="Choose what to scan for">
@@ -93,7 +87,7 @@
         <p class="eyebrow">Local static review</p>
         <h2 id="dropTitle">Drop a repo ZIP here</h2>
         <p>Sentinel scans structure, dependencies, credential-shaped findings, binaries, network, process, filesystem, phishing and AI surfaces, then leads the report with your chosen focus.</p>
-        <p id="dropDisclosure" class="local-disclosure">Sentinel performs bounded static analysis locally. It does not execute repository code or install dependencies. It cannot prove that a repository is safe. Reports are retained locally until deleted.</p>
+        <p id="dropDisclosure" class="local-disclosure">Sentinel performs bounded static analysis locally. It does not execute repository code or install dependencies. It cannot prove that a repository is safe. Reports are retained locally until deleted. Review reports before sharing; sanitization is best-effort.</p>
         <button id="browseButton" class="file-browse-button" type="button" aria-describedby="dropDisclosure" aria-controls="zipInput" aria-label="Choose a repository ZIP file">Browse ZIP</button>
       </div>
       <div class="drop-helper" aria-label="What lands in the brief">
